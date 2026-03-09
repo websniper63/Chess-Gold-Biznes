@@ -3,13 +3,26 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { ChessBoard } from '@/components/ChessBoard';
 import { GameModeSelect } from '@/components/GameModeSelect';
-import { CapturedPieces } from '@/components/CapturedPieces';
+import { PlayerPanel } from '@/components/PlayerPanel';
+import { MoveHistory } from '@/components/MoveHistory';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Check, Volume2, VolumeX } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { 
+  Copy, 
+  Check, 
+  Volume2, 
+  VolumeX, 
+  RotateCcw, 
+  FlipHorizontal,
+  Home,
+  Plus,
+  Settings,
+  Crown,
+  Trophy,
+  Loader2
+} from 'lucide-react';
 import {
   GameState,
   Position,
@@ -25,6 +38,7 @@ import {
   PIECE_SYMBOLS
 } from '@/lib/chess';
 import { useSounds } from '@/hooks/useSounds';
+import { cn } from '@/lib/utils';
 
 export default function ChessGame() {
   // Game state
@@ -46,10 +60,8 @@ export default function ChessGame() {
   const [roomId, setRoomId] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [onlinePlayers, setOnlinePlayers] = useState<Player[]>([]);
-  const [opponentDisconnected, setOpponentDisconnected] = useState(false);
   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
   const [isRoomCreator, setIsRoomCreator] = useState(false);
-  const [onlinePlayerId, setOnlinePlayerId] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -67,7 +79,6 @@ export default function ChessGame() {
   const [whiteTime, setWhiteTime] = useState(600);
   const [blackTime, setBlackTime] = useState(600);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const prevGameOverRef = useRef(false);
 
   // Timer interval
   useEffect(() => {
@@ -83,17 +94,13 @@ export default function ChessGame() {
       if (gameState.currentTurn === 'w') {
         setWhiteTime(prev => {
           if (prev <= 1) {
-            setGameState(g => {
-              if (!g.gameOver) {
-                setShowGameEndDialog(true);
-              }
-              return {
-                ...g,
-                gameOver: true,
-                winner: 'b',
-                drawReason: 'Время вышло'
-              };
-            });
+            setGameState(g => ({
+              ...g,
+              gameOver: true,
+              winner: 'b',
+              drawReason: 'Время вышло'
+            }));
+            setShowGameEndDialog(true);
             return 0;
           }
           return prev - 1;
@@ -101,17 +108,13 @@ export default function ChessGame() {
       } else {
         setBlackTime(prev => {
           if (prev <= 1) {
-            setGameState(g => {
-              if (!g.gameOver) {
-                setShowGameEndDialog(true);
-              }
-              return {
-                ...g,
-                gameOver: true,
-                winner: 'w',
-                drawReason: 'Время вышло'
-              };
-            });
+            setGameState(g => ({
+              ...g,
+              gameOver: true,
+              winner: 'w',
+              drawReason: 'Время вышло'
+            }));
+            setShowGameEndDialog(true);
             return 0;
           }
           return prev - 1;
@@ -270,7 +273,6 @@ export default function ChessGame() {
     setIsGameStarted(true);
     setPlayerColor(settings.playerColor);
     setShowGameEndDialog(false);
-    prevGameOverRef.current = false;
 
     if (settings.boardSkin) {
       setBoardSkin(settings.boardSkin);
@@ -294,11 +296,8 @@ export default function ChessGame() {
     setRoomId(null);
     setOnlinePlayers([]);
     setWaitingForOpponent(false);
-    setOpponentDisconnected(false);
     setShowGameEndDialog(false);
     setPromotionDialog(null);
-    setOnlinePlayerId(null);
-    prevGameOverRef.current = false;
 
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -370,7 +369,6 @@ export default function ChessGame() {
       if (data.success) {
         setRoomId(data.roomId);
         setPlayerColor(data.playerColor);
-        setOnlinePlayerId(data.playerId);
         setOnlinePlayers(data.room.players);
         setBoardSkin(selectedBoardSkin);
         setPieceSet(selectedPieceSet);
@@ -382,7 +380,6 @@ export default function ChessGame() {
         setWhiteTime(timeControl);
         setBlackTime(timeControl);
         
-        // Start polling for opponent
         startPolling(data.roomId);
       } else {
         console.error('Failed to create room:', data.error);
@@ -419,7 +416,6 @@ export default function ChessGame() {
       if (data.success) {
         setRoomId(data.roomId);
         setPlayerColor(data.playerColor);
-        setOnlinePlayerId(data.playerId);
         setOnlinePlayers(data.room.players);
         setGameSettings({
           mode: 'online',
@@ -430,7 +426,6 @@ export default function ChessGame() {
         setGameState(data.room.gameState);
         setWaitingForOpponent(false);
         
-        // Start polling
         startPolling(data.roomId);
       } else {
         console.error('Failed to join room:', data.error);
@@ -476,39 +471,46 @@ export default function ChessGame() {
     return 'Игра окончена';
   };
 
-  // Format time
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // Handle URL join parameter
-  const [joinRoomCode, setJoinRoomCode] = useState<string | null>(null);
-  
+  // Handle URL join parameter (read only, no state needed)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const joinCode = params.get('join');
-      if (joinCode) {
-        setJoinRoomCode(joinCode.toUpperCase());
-      }
+      // joinCode is available for future implementation of auto-join functionality
+      console.log('Join code from URL:', joinCode);
     }
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-      <div className="container mx-auto px-4 py-6">
-        {/* Header */}
-        <header className="text-center mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold flex items-center justify-center gap-3">
-            <span className="text-4xl">♔</span>
-            Шахматы
-            <span className="text-4xl">♚</span>
-          </h1>
-          <p className="text-slate-400 mt-1">Играйте против ИИ, вдвоём или онлайн с друзьями</p>
-        </header>
+    <div className="min-h-screen bg-[#1E293B] text-white">
+      {/* Top Bar */}
+      <header className="sticky top-0 z-40 bg-[#0F172A] border-b border-slate-700/50">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-xl font-bold shadow-lg">
+              ♔
+            </div>
+            <div>
+              <h1 className="text-lg font-bold">Шахматы</h1>
+              <p className="text-xs text-slate-400">Классическая игра</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              className="text-slate-400 hover:text-white hover:bg-slate-700"
+            >
+              {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+            </Button>
+          </div>
+        </div>
+      </header>
 
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-4">
         {!isGameStarted ? (
           <GameModeSelect
             onStartGame={startGame}
@@ -518,107 +520,70 @@ export default function ChessGame() {
           />
         ) : waitingForOpponent && isRoomCreator ? (
           // Waiting room dialog for online game
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-            <Card className="bg-slate-800 border-slate-700 max-w-md w-full mx-4">
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl text-white flex items-center justify-center gap-2">
-                  🎮 Ожидание игрока
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="text-center">
-                  <p className="text-slate-400 mb-4">
-                    Отправьте ссылку другу:
-                  </p>
-                  <div className="bg-slate-900 p-4 rounded-lg">
-                    <div className="text-3xl font-mono font-bold tracking-widest text-yellow-400 mb-2">
-                      {roomId}
-                    </div>
-                    <p className="text-xs text-slate-500 mt-2 break-all">
-                      {typeof window !== 'undefined' ? `${window.location.origin}?join=${roomId}` : ''}
-                    </p>
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+            <div className="bg-[#1E293B] border border-slate-700 rounded-2xl max-w-sm w-full p-6">
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-purple-500/20 flex items-center justify-center">
+                  <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+                </div>
+                <h2 className="text-xl font-bold mb-2">Ожидание игрока</h2>
+                <p className="text-slate-400 text-sm mb-6">
+                  Отправьте код другу:
+                </p>
+                
+                <div className="bg-slate-800 rounded-xl p-4 mb-4">
+                  <div className="text-3xl font-mono font-bold tracking-widest text-amber-400">
+                    {roomId}
                   </div>
                 </div>
                 
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    className="flex-1 bg-slate-700 border-slate-600"
-                    onClick={() => {
-                      const link = `${window.location.origin}?join=${roomId}`;
-                      navigator.clipboard.writeText(link);
-                      setCopiedLink(true);
-                      setTimeout(() => setCopiedLink(false), 2000);
-                    }}
-                  >
-                    {copiedLink ? (
-                      <><Check className="w-4 h-4 mr-2" /> Скопировано!</>
-                    ) : (
-                      <><Copy className="w-4 h-4 mr-2" /> Копировать ссылку</>
-                    )}
-                  </Button>
-                </div>
-                
-                <div className="flex items-center justify-center gap-2 text-slate-400">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span className="animate-pulse">Ожидаем второго игрока...</span>
-                </div>
+                <Button
+                  variant="outline"
+                  className="w-full bg-slate-700 border-slate-600 hover:bg-slate-600 mb-2"
+                  onClick={() => {
+                    const link = `${window.location.origin}?join=${roomId}`;
+                    navigator.clipboard.writeText(link);
+                    setCopiedLink(true);
+                    setTimeout(() => setCopiedLink(false), 2000);
+                  }}
+                >
+                  {copiedLink ? (
+                    <><Check className="w-4 h-4 mr-2" /> Скопировано!</>
+                  ) : (
+                    <><Copy className="w-4 h-4 mr-2" /> Копировать ссылку</>
+                  )}
+                </Button>
                 
                 <Button
                   variant="ghost"
-                  className="w-full text-slate-500 hover:text-white"
+                  className="w-full text-slate-400 hover:text-white mt-2"
                   onClick={resetGame}
                 >
                   Отмена
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 max-w-6xl mx-auto">
-            {/* Main Game Area */}
-            <div className="flex flex-col items-center gap-4">
-              {/* Black Player Timer (top) */}
-              <div className="w-full max-w-md">
-                <div className={`flex items-center justify-between p-3 rounded-lg transition-all duration-300 ${
-                  gameState.currentTurn === 'b'
-                    ? 'bg-slate-700 ring-2 ring-yellow-500 shadow-lg shadow-yellow-500/20'
-                    : 'bg-slate-800'
-                }`}>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">♚</span>
-                    <span className="font-semibold">{blackPlayerName}</span>
-                    {isThinking && gameSettings?.mode === 'ai' && gameSettings.playerColor === 'w' && (
-                      <Badge variant="secondary" className="ml-2 animate-pulse bg-slate-600">
-                        Думаю...
-                      </Badge>
-                    )}
-                  </div>
-                  {gameSettings?.timeControl ? (
-                    <span className={`font-mono text-xl font-bold ${
-                      blackTime < 30 ? 'text-red-400 animate-pulse' : ''
-                    }`}>
-                      {formatTime(blackTime)}
-                    </span>
-                  ) : (
-                    <span className="text-slate-400">
-                      {gameState.currentTurn === 'b' ? '⏳ Ход' : ''}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Chess Board with Side Tables */}
-              <div className="flex items-center gap-4">
-                {/* Captured by Black (Black pieces taken by White) */}
-                <CapturedPieces 
-                  capturedPieces={gameState.capturedPieces.b}
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4">
+              {/* Main Game Area */}
+              <div className="flex flex-col gap-4">
+                {/* Black Player Panel */}
+                <PlayerPanel
                   color="b"
-                  boardSkinId={boardSkin}
+                  name={blackPlayerName}
+                  isAI={gameSettings?.mode === 'ai' && gameSettings.playerColor === 'w'}
+                  time={gameSettings?.timeControl ? blackTime : undefined}
+                  isActive={gameState.currentTurn === 'b' && !gameState.gameOver}
+                  capturedPieces={gameState.capturedPieces.b}
+                  isCheck={gameState.isCheck && gameState.currentTurn === 'b'}
+                  isWinner={gameState.winner === 'b'}
                   pieceSetId={pieceSet}
                 />
                 
-                <div className="relative">
+                {/* Chess Board */}
+                <div className="relative flex justify-center">
                   <ChessBoard
                     board={gameState.board}
                     currentTurn={gameState.currentTurn}
@@ -631,222 +596,128 @@ export default function ChessGame() {
                     skinId={boardSkin}
                     pieceSetId={pieceSet}
                   />
+                  
+                  {/* Thinking overlay */}
                   {isThinking && (
-                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded-xl backdrop-blur-sm">
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-xl backdrop-blur-sm">
                       <div className="bg-slate-800 px-6 py-3 rounded-xl flex items-center gap-3 shadow-2xl">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <Loader2 className="w-5 h-5 animate-spin" />
                         <span>Компьютер думает...</span>
                       </div>
                     </div>
                   )}
                 </div>
                 
-                {/* Captured by White (White pieces taken by Black) */}
-                <CapturedPieces 
-                  capturedPieces={gameState.capturedPieces.w}
+                {/* White Player Panel */}
+                <PlayerPanel
                   color="w"
-                  boardSkinId={boardSkin}
+                  name={whitePlayerName}
+                  isAI={gameSettings?.mode === 'ai' && gameSettings.playerColor === 'b'}
+                  time={gameSettings?.timeControl ? whiteTime : undefined}
+                  isActive={gameState.currentTurn === 'w' && !gameState.gameOver}
+                  capturedPieces={gameState.capturedPieces.w}
+                  isCheck={gameState.isCheck && gameState.currentTurn === 'w'}
+                  isWinner={gameState.winner === 'w'}
                   pieceSetId={pieceSet}
                 />
-              </div>
-
-              {/* White Player Timer (bottom) */}
-              <div className="w-full max-w-md">
-                <div className={`flex items-center justify-between p-3 rounded-lg transition-all duration-300 ${
-                  gameState.currentTurn === 'w'
-                    ? 'bg-slate-700 ring-2 ring-yellow-500 shadow-lg shadow-yellow-500/20'
-                    : 'bg-slate-800'
-                }`}>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">♔</span>
-                    <span className="font-semibold">{whitePlayerName}</span>
-                    {isThinking && gameSettings?.mode === 'ai' && gameSettings.playerColor === 'b' && (
-                      <Badge variant="secondary" className="ml-2 animate-pulse bg-slate-600">
-                        Думаю...
-                      </Badge>
-                    )}
-                  </div>
-                  {gameSettings?.timeControl ? (
-                    <span className={`font-mono text-xl font-bold ${
-                      whiteTime < 30 ? 'text-red-400 animate-pulse' : ''
-                    }`}>
-                      {formatTime(whiteTime)}
-                    </span>
-                  ) : (
-                    <span className="text-slate-400">
-                      {gameState.currentTurn === 'w' ? '⏳ Ваш ход' : ''}
-                    </span>
-                  )}
+                
+                {/* Control Buttons */}
+                <div className="flex gap-2 justify-center">
+                  <Button
+                    variant="outline"
+                    onClick={resetGame}
+                    className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
+                  >
+                    <Home className="w-4 h-4 mr-2" />
+                    В меню
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setGameState(createInitialGameState());
+                      setSelectedSquare(null);
+                      setLegalMoves([]);
+                      setShowGameEndDialog(false);
+                      if (gameSettings?.timeControl) {
+                        setWhiteTime(gameSettings.timeControl);
+                        setBlackTime(gameSettings.timeControl);
+                      }
+                    }}
+                    className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-white"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Новая игра
+                  </Button>
                 </div>
               </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 mt-2">
-                <Button variant="outline" onClick={resetGame} className="bg-slate-700 border-slate-600 hover:bg-slate-600">
-                  ← В меню
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setGameState(createInitialGameState());
-                    setSelectedSquare(null);
-                    setLegalMoves([]);
-                    setShowGameEndDialog(false);
-                    prevGameOverRef.current = false;
-                    if (gameSettings?.timeControl) {
-                      setWhiteTime(gameSettings.timeControl);
-                      setBlackTime(gameSettings.timeControl);
-                    }
-                  }}
-                  className="bg-slate-700 border-slate-600 hover:bg-slate-600"
-                >
-                  Новая игра
-                </Button>
-              </div>
-            </div>
-
-            {/* Side Panel */}
-            <div className="flex flex-col gap-4">
-              {/* Room Info (for online mode) */}
-              {gameSettings?.mode === 'online' && roomId && (
-                <Card className="bg-slate-800 border-slate-700">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Комната</CardTitle>
-                  </CardHeader>
-                  <CardContent>
+              
+              {/* Side Panel */}
+              <div className="space-y-4">
+                {/* Room Info (for online mode) */}
+                {gameSettings?.mode === 'online' && roomId && (
+                  <div className="bg-slate-800/60 rounded-xl border border-slate-700/50 p-4">
                     <div className="text-center">
-                      <p className="text-sm text-slate-400 mb-2">
-                        {waitingForOpponent 
-                          ? 'Отправьте код другу:' 
-                          : 'Код комнаты:'}
-                      </p>
-                      <div className="bg-slate-900 py-3 px-4 rounded-lg text-2xl font-mono font-bold tracking-widest">
+                      <p className="text-xs text-slate-400 mb-2">Код комнаты</p>
+                      <div className="bg-slate-900 py-2 px-4 rounded-lg text-xl font-mono font-bold tracking-widest text-amber-400">
                         {roomId}
                       </div>
-                      {waitingForOpponent && (
-                        <p className="text-sm text-yellow-400 mt-2 animate-pulse">
-                          ⏳ Ожидание противника...
-                        </p>
-                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Game Status */}
-              <Card className="bg-slate-800 border-slate-700">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    Статус
-                    {gameState.isCheck && !gameState.gameOver && (
-                      <Badge variant="destructive" className="animate-pulse">ШАХ!</Badge>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400">Ход:</span>
-                    <span className="font-semibold flex items-center gap-2">
-                      {gameState.currentTurn === 'w' ? (
-                        <>♔ Белые</>
-                      ) : (
-                        <>♚ Чёрные</>
-                      )}
-                    </span>
                   </div>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-slate-400">Номер хода:</span>
+                )}
+                
+                {/* Game Status */}
+                <div className="bg-slate-800/60 rounded-xl border border-slate-700/50 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm text-slate-400">Ход</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{gameState.currentTurn === 'w' ? '♔' : '♚'}</span>
+                      <span className="font-semibold">
+                        {gameState.currentTurn === 'w' ? 'Белые' : 'Чёрные'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-400">Номер хода</span>
                     <span className="font-semibold">{gameState.fullMoveNumber}</span>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Move History */}
-              <Card className="bg-slate-800 border-slate-700 flex-1">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">История ходов</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[200px] pr-4">
-                    {gameState.moveHistory.length === 0 ? (
-                      <p className="text-slate-500 text-sm">Ходов пока нет</p>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                        {gameState.moveHistory.map((move, index) => (
-                          <div
-                            key={index}
-                            className={`flex items-center gap-2 py-1 px-2 rounded ${
-                              index === gameState.moveHistory.length - 1
-                                ? 'bg-slate-700'
-                                : ''
-                            }`}
-                          >
-                            <span className="text-slate-500 w-6">
-                              {index % 2 === 0 ? Math.floor(index / 2) + 1 + '.' : ''}
-                            </span>
-                            <span className="font-mono">
-                              {move.notation}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-
-              {/* Captured Pieces */}
-              <Card className="bg-slate-800 border-slate-700">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Взятые фигуры</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div>
-                    <span className="text-slate-400 text-sm">Белыми: </span>
-                    <span className="font-mono text-lg">
-                      {gameState.capturedPieces.b
-                        .sort((a, b) => {
-                          const order = { q: 1, r: 2, b: 3, n: 4, p: 5 };
-                          return order[a.type] - order[b.type];
-                        })
-                        .map(p => PIECE_SYMBOLS.b[p.type])
-                        .join(' ')}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 text-sm">Чёрными: </span>
-                    <span className="font-mono text-lg">
-                      {gameState.capturedPieces.w
-                        .sort((a, b) => {
-                          const order = { q: 1, r: 2, b: 3, n: 4, p: 5 };
-                          return order[a.type] - order[b.type];
-                        })
-                        .map(p => PIECE_SYMBOLS.w[p.type])
-                        .join(' ')}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
+                  
+                  {gameState.isCheck && !gameState.gameOver && (
+                    <div className="mt-3 flex justify-center">
+                      <Badge variant="destructive" className="animate-pulse">
+                        ШАХ!
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Move History */}
+                <MoveHistory 
+                  moves={gameState.moveHistory}
+                  currentTurn={gameState.currentTurn}
+                  fullMoveNumber={gameState.fullMoveNumber}
+                />
+              </div>
             </div>
           </div>
         )}
-      </div>
+      </main>
 
       {/* Promotion Dialog */}
       <Dialog open={!!promotionDialog} onOpenChange={() => setPromotionDialog(null)}>
-        <DialogContent className="bg-slate-800 border-slate-700 text-white">
+        <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-sm">
           <DialogHeader>
-            <DialogTitle>Превращение пешки</DialogTitle>
-            <DialogDescription className="text-slate-400">
-              Выберите фигуру для превращения
+            <DialogTitle className="text-center">Превращение пешки</DialogTitle>
+            <DialogDescription className="text-slate-400 text-center">
+              Выберите фигуру
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-center gap-4 mt-4">
+          <div className="flex justify-center gap-3 mt-4">
             {(['q', 'r', 'b', 'n'] as PieceType[]).map((type) => (
               <Button
                 key={type}
                 variant="outline"
-                className="w-16 h-16 text-4xl bg-slate-700 hover:bg-slate-600 border-slate-600 transition-transform hover:scale-110"
+                className="w-16 h-16 text-3xl bg-slate-700 hover:bg-slate-600 border-slate-600 transition-transform hover:scale-110"
                 onClick={() => handlePromotion(type)}
               >
                 {PIECE_SYMBOLS[promotionDialog?.color || 'w'][type]}
@@ -858,9 +729,14 @@ export default function ChessGame() {
 
       {/* Game End Dialog */}
       <Dialog open={showGameEndDialog} onOpenChange={setShowGameEndDialog}>
-        <DialogContent className="bg-slate-800 border-slate-700 text-white">
+        <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-2xl text-center">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-3xl shadow-lg">
+                <Trophy className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <DialogTitle className="text-xl text-center">
               {getGameEndMessage()}
             </DialogTitle>
           </DialogHeader>
@@ -871,7 +747,6 @@ export default function ChessGame() {
                 setSelectedSquare(null);
                 setLegalMoves([]);
                 setShowGameEndDialog(false);
-                prevGameOverRef.current = false;
                 if (gameSettings?.timeControl) {
                   setWhiteTime(gameSettings.timeControl);
                   setBlackTime(gameSettings.timeControl);
@@ -879,6 +754,7 @@ export default function ChessGame() {
               }}
               className="w-full bg-blue-600 hover:bg-blue-700"
             >
+              <RotateCcw className="w-4 h-4 mr-2" />
               Играть снова
             </Button>
             <Button
@@ -886,6 +762,7 @@ export default function ChessGame() {
               onClick={resetGame}
               className="w-full bg-slate-700 border-slate-600 hover:bg-slate-600"
             >
+              <Home className="w-4 h-4 mr-2" />
               В главное меню
             </Button>
           </div>
