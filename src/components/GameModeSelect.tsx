@@ -292,12 +292,17 @@ export function GameModeSelect({
                   }`}
                 >
                   {/* VIP Badge */}
-                  <div className="absolute top-3 right-3 bg-gradient-to-r from-yellow-400 to-amber-500 text-xs text-black font-bold px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
-                    <Crown className="w-3 h-3" /> VIP
+                  <div className="absolute top-3 right-3 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 text-xs text-black font-bold px-3 py-1 rounded-full shadow-lg flex items-center gap-1 animate-pulse">
+                    <Crown className="w-3 h-3" /> VIP 3D
+                  </div>
+                  
+                  {/* 3D Panorama indicator */}
+                  <div className="absolute top-3 left-3 text-[10px] bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold px-2 py-0.5 rounded-full shadow-lg">
+                    🎬 ПАНОРАМА
                   </div>
                   
                   {/* Preview */}
-                  <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center gap-4 mb-4 mt-2">
                     {/* Board preview */}
                     <div 
                       className="w-16 h-16 rounded-lg shadow-lg"
@@ -309,6 +314,8 @@ export function GameModeSelect({
                           ) from 0deg
                         `,
                         border: '3px solid #ffd700',
+                        boxShadow: '0 4px 12px rgba(255,215,0,0.4)',
+                        transform: 'perspective(100px) rotateX(5deg)',
                       }}
                     />
                     
@@ -319,10 +326,10 @@ export function GameModeSelect({
                   </div>
                   
                   <div className="font-bold text-white text-lg mb-1">
-                    Египетская коллекция 3D
+                    Панорамная 3D Коллекция
                   </div>
                   <div className="text-sm text-slate-400">
-                    Фараоны, Анубис, Гор • Золотые акценты • 3D бюсты
+                    Фараоны, Анубис, Гор • Золотые акценты • Реалистичные 3D бюсты
                   </div>
                   
                   {/* Features */}
@@ -331,7 +338,7 @@ export function GameModeSelect({
                       🏛️ Древний Египет
                     </span>
                     <span className="text-xs bg-amber-500/20 text-amber-300 px-2 py-1 rounded-full">
-                      💎 3D рендер
+                      🎬 3D Панорама
                     </span>
                     <span className="text-xs bg-orange-500/20 text-orange-300 px-2 py-1 rounded-full">
                       ✨ Золото

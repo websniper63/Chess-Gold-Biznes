@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "The image you've shared is actually a screenshot of the Vercel platform's \"New Project\" page (vercel.com/new), not a chess interface. It shows a web interface for deploying projects, with sections for importing Git repositories and cloning templates, but there is no chess game or chess interface visible here.  \n\nIf you intended to ask about a chess interface, could you share the correct image or provide more context? I’d be happy to describe its 3D style, piece designs, board appearance, and visual effects once I can see the relevant content.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1773091351,
+  "id": "2026031005222698eb5ba88980439d",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "2026031005222698eb5ba88980439d",
+  "usage": {
+    "completion_tokens": 115,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 2436,
+    "prompt_tokens_details": {
+      "cached_tokens": 4
+    },
+    "total_tokens": 2551
+  }
+}

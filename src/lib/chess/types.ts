@@ -347,7 +347,7 @@ export const BOARD_SKINS: Record<BoardSkinId, BoardSkin> = {
   },
   vip3d: {
     id: 'vip3d',
-    name: 'VIP 3D',
+    name: 'VIP 3D Панорама',
     lightSquare: '#f5e6c8',
     darkSquare: '#8b6914',
     selectedLight: '#ffe066',
@@ -359,8 +359,8 @@ export const BOARD_SKINS: Record<BoardSkinId, BoardSkin> = {
     checkLight: '#ff4444',
     checkDark: '#cc0000',
     border: '#ffd700',
-    tableColor: '#1a1a1a',
-    tableAccent: '#0a0a0a',
+    tableColor: '#1a1208',
+    tableAccent: '#0a0804',
     isVIP: true,
   }
 };

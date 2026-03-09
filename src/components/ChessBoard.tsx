@@ -54,6 +54,7 @@ function BoardSquare({
   pieceSetId: PieceSetId;
 }) {
   const isLight = (position.row + position.col) % 2 === 0;
+  const isVIP3D = skin.id === 'vip3d' || pieceSetId === 'vip3d';
   
   // Определяем цвет клетки с реалистичными эффектами
   let bgColor: string;
@@ -81,33 +82,56 @@ function BoardSquare({
         width: squareSize, 
         height: squareSize,
         background: bgColor,
-        boxShadow: `
-          inset 0 2px 0 ${isLight ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)'},
-          inset 0 -3px 6px rgba(0,0,0,0.15),
-          inset 2px 0 0 ${isLight ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.15)'},
-          inset -2px 0 0 ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.25)'}
-        `,
+        boxShadow: isVIP3D
+          ? `
+            inset 0 3px 0 ${isLight ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.3)'},
+            inset 0 -4px 8px rgba(0,0,0,0.2),
+            inset 3px 0 0 ${isLight ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.1)'},
+            inset -3px 0 0 ${isLight ? 'rgba(0,0,0,0.05)' : 'rgba(0,0,0,0.3)'}
+          `
+          : `
+            inset 0 2px 0 ${isLight ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)'},
+            inset 0 -3px 6px rgba(0,0,0,0.15),
+            inset 2px 0 0 ${isLight ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.15)'},
+            inset -2px 0 0 ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.25)'}
+          `,
       }}
     >
       {/* Реалистичная текстура клетки */}
       <div 
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: isLight 
-            ? `repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 3px,
-                rgba(0,0,0,0.015) 3px,
-                rgba(0,0,0,0.015) 6px
-              )`
-            : `repeating-linear-gradient(
-                -45deg,
-                transparent,
-                transparent 4px,
-                rgba(0,0,0,0.025) 4px,
-                rgba(0,0,0,0.025) 8px
-              )`,
+          background: isVIP3D
+            ? isLight 
+              ? `repeating-linear-gradient(
+                  45deg,
+                  transparent,
+                  transparent 2px,
+                  rgba(139,105,20,0.03) 2px,
+                  rgba(139,105,20,0.03) 4px
+                )`
+              : `repeating-linear-gradient(
+                  -45deg,
+                  transparent,
+                  transparent 3px,
+                  rgba(0,0,0,0.04) 3px,
+                  rgba(0,0,0,0.04) 6px
+                )`
+            : isLight 
+              ? `repeating-linear-gradient(
+                  45deg,
+                  transparent,
+                  transparent 3px,
+                  rgba(0,0,0,0.015) 3px,
+                  rgba(0,0,0,0.015) 6px
+                )`
+              : `repeating-linear-gradient(
+                  -45deg,
+                  transparent,
+                  transparent 4px,
+                  rgba(0,0,0,0.025) 4px,
+                  rgba(0,0,0,0.025) 8px
+                )`,
         }}
       />
       
@@ -115,13 +139,21 @@ function BoardSquare({
       <div 
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: `linear-gradient(
-            135deg,
-            ${isLight ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.1)'} 0%,
-            transparent 35%,
-            transparent 65%,
-            ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.15)'} 100%
-          )`,
+          background: isVIP3D
+            ? `linear-gradient(
+                135deg,
+                ${isLight ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.15)'} 0%,
+                transparent 30%,
+                transparent 70%,
+                ${isLight ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.2)'} 100%
+              )`
+            : `linear-gradient(
+                135deg,
+                ${isLight ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.1)'} 0%,
+                transparent 35%,
+                transparent 65%,
+                ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.15)'} 100%
+              )`,
         }}
       />
 
@@ -171,11 +203,17 @@ function BoardSquare({
             marginBottom: -2,
             transform: isSelected ? 'scale(1.05) translateY(-2px)' : 'scale(1)',
             transition: 'transform 0.15s ease-out',
-            filter: isLastMove 
-              ? 'drop-shadow(0 4px 8px rgba(0,0,0,0.35))' 
-              : isSelected 
-                ? 'drop-shadow(0 6px 12px rgba(0,0,0,0.4))'
-                : 'drop-shadow(0 3px 6px rgba(0,0,0,0.3))',
+            filter: isVIP3D
+              ? isLastMove 
+                ? 'drop-shadow(0 8px 16px rgba(0,0,0,0.5)) drop-shadow(0 0 20px rgba(255,215,0,0.2))' 
+                : isSelected 
+                  ? 'drop-shadow(0 10px 20px rgba(0,0,0,0.5)) drop-shadow(0 0 25px rgba(255,215,0,0.3))'
+                  : 'drop-shadow(0 6px 12px rgba(0,0,0,0.4)) drop-shadow(0 0 15px rgba(255,215,0,0.1))'
+              : isLastMove 
+                ? 'drop-shadow(0 4px 8px rgba(0,0,0,0.35))' 
+                : isSelected 
+                  ? 'drop-shadow(0 6px 12px rgba(0,0,0,0.4))'
+                  : 'drop-shadow(0 3px 6px rgba(0,0,0,0.3))',
           }}
         >
           <ChessPiece3D piece={piece} size={squareSize * 0.88} pieceSetId={pieceSetId} />
@@ -210,6 +248,9 @@ function ChessBoardComponent({
 }: ChessBoardProps) {
   const [squareSize, setSquareSize] = useState(75);
   const skin = BOARD_SKINS[skinId];
+  
+  // Панорамный 3D режим для VIP набора
+  const isVIP3DMode = skinId === 'vip3d' || pieceSetId === 'vip3d';
   
   // Адаптивный размер - делаем доску МАКСИМАЛЬНО большой
   useEffect(() => {
@@ -268,6 +309,12 @@ function ChessBoardComponent({
   const boardWidth = squareSize * 8;
   const borderWidth = Math.max(16, squareSize * 0.22);
   
+  // 3D панорамные трансформации
+  const perspective3D = isVIP3DMode ? '2000px' : '1400px';
+  const rotateX3D = isVIP3DMode ? 'rotateX(12deg)' : 'rotateX(0deg)';
+  const scale3D = isVIP3DMode ? 'scale(0.92)' : 'scale(1)';
+  const translateY3D = isVIP3DMode ? 'translateY(-15px)' : 'translateY(0)';
+  
   return (
     <div className="relative inline-flex flex-col items-center">
       {/* Заголовок с координатами колонок (сверху) */}
@@ -322,15 +369,19 @@ function ChessBoardComponent({
         <div 
           className="relative"
           style={{
-            perspective: '1400px',
+            perspective: perspective3D,
+            perspectiveOrigin: '50% 30%',
           }}
         >
-          {/* Глубокая тень под доской */}
+          {/* Глубокая тень под доской - усилена для 3D */}
           <div 
             className="absolute -bottom-10 left-6 right-6 h-12 rounded-2xl"
             style={{
-              background: 'radial-gradient(ellipse, rgba(0,0,0,0.45) 0%, transparent 70%)',
-              filter: 'blur(12px)',
+              background: isVIP3DMode 
+                ? 'radial-gradient(ellipse, rgba(0,0,0,0.7) 0%, transparent 70%)'
+                : 'radial-gradient(ellipse, rgba(0,0,0,0.45) 0%, transparent 70%)',
+              filter: isVIP3DMode ? 'blur(20px)' : 'blur(12px)',
+              transform: rotateX3D,
             }}
           />
           
@@ -338,18 +389,32 @@ function ChessBoardComponent({
           <div 
             className="absolute -inset-12 rounded-3xl"
             style={{
-              background: `
-                linear-gradient(160deg, 
-                  ${skin.tableColor} 0%, 
-                  ${skin.tableAccent} 50%,
-                  #1a1a1a 100%
-                )
-              `,
-              boxShadow: `
-                inset 0 3px 15px rgba(255,255,255,0.08),
-                inset 0 -3px 15px rgba(0,0,0,0.4),
-                0 35px 70px -20px rgba(0,0,0,0.6)
-              `,
+              background: isVIP3DMode 
+                ? `linear-gradient(180deg, 
+                    #2a2010 0%, 
+                    #1a1208 30%,
+                    #0d0a04 70%,
+                    #050302 100%
+                  )`
+                : `linear-gradient(160deg, 
+                    ${skin.tableColor} 0%, 
+                    ${skin.tableAccent} 50%,
+                    #1a1a1a 100%
+                  )`,
+              boxShadow: isVIP3DMode
+                ? `
+                  inset 0 3px 20px rgba(255,215,0,0.1),
+                  inset 0 -3px 15px rgba(0,0,0,0.6),
+                  0 50px 100px -30px rgba(0,0,0,0.8),
+                  0 30px 60px -20px rgba(0,0,0,0.6)
+                `
+                : `
+                  inset 0 3px 15px rgba(255,255,255,0.08),
+                  inset 0 -3px 15px rgba(0,0,0,0.4),
+                  0 35px 70px -20px rgba(0,0,0,0.6)
+                `,
+              transform: `${rotateX3D} ${scale3D} ${translateY3D}`,
+              transformStyle: 'preserve-3d',
             }}
           />
           
@@ -384,8 +449,18 @@ function ChessBoardComponent({
             style={{
               width: boardWidth + borderWidth * 2,
               height: boardWidth + borderWidth * 2,
-              background: `
-                linear-gradient(145deg,
+              background: isVIP3DMode
+                ? `linear-gradient(145deg,
+                    #ffd700 0%,
+                    #ffec8b 10%,
+                    #daa520 25%,
+                    #b8860b 40%,
+                    #ffd700 55%,
+                    #ffec8b 70%,
+                    #daa520 85%,
+                    #ffd700 100%
+                  )`
+                : `linear-gradient(145deg,
                   #c9a227 0%,
                   #d4af37 15%,
                   #b8941f 35%,
@@ -393,17 +468,29 @@ function ChessBoardComponent({
                   #b8941f 65%,
                   #d4af37 85%,
                   #c9a227 100%
-                )
-              `,
+                )`,
               padding: borderWidth,
-              boxShadow: `
-                0 25px 50px -15px rgba(0,0,0,0.5),
-                0 15px 30px -10px rgba(0,0,0,0.35),
-                inset 0 3px 8px rgba(255,255,255,0.35),
-                inset 0 -3px 8px rgba(0,0,0,0.25),
-                inset 6px 0 12px rgba(255,255,255,0.15),
-                inset -6px 0 12px rgba(0,0,0,0.15)
-              `,
+              boxShadow: isVIP3DMode
+                ? `
+                  0 40px 80px -20px rgba(0,0,0,0.7),
+                  0 25px 50px -15px rgba(0,0,0,0.5),
+                  0 15px 30px -10px rgba(0,0,0,0.35),
+                  inset 0 4px 12px rgba(255,255,255,0.5),
+                  inset 0 -4px 12px rgba(0,0,0,0.3),
+                  inset 8px 0 16px rgba(255,255,255,0.2),
+                  inset -8px 0 16px rgba(0,0,0,0.2),
+                  0 0 60px rgba(255,215,0,0.15)
+                `
+                : `
+                  0 25px 50px -15px rgba(0,0,0,0.5),
+                  0 15px 30px -10px rgba(0,0,0,0.35),
+                  inset 0 3px 8px rgba(255,255,255,0.35),
+                  inset 0 -3px 8px rgba(0,0,0,0.25),
+                  inset 6px 0 12px rgba(255,255,255,0.15),
+                  inset -6px 0 12px rgba(0,0,0,0.15)
+                `,
+              transform: `${rotateX3D} ${scale3D} ${translateY3D}`,
+              transformStyle: 'preserve-3d',
             }}
           >
             {/* Внутренняя тень рамки */}
@@ -425,10 +512,12 @@ function ChessBoardComponent({
                 style={{
                   left: x,
                   top: y,
-                  width: 10,
-                  height: 10,
+                  width: isVIP3DMode ? 14 : 10,
+                  height: isVIP3DMode ? 14 : 10,
                   background: 'radial-gradient(circle at 30% 30%, #fff8dc 0%, #ffd700 40%, #b8860b 100%)',
-                  boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5), 0 2px 4px rgba(0,0,0,0.3)',
+                  boxShadow: isVIP3DMode 
+                    ? 'inset 0 3px 6px rgba(255,255,255,0.7), 0 4px 8px rgba(0,0,0,0.4), 0 0 15px rgba(255,215,0,0.5)'
+                    : 'inset 0 2px 4px rgba(255,255,255,0.5), 0 2px 4px rgba(0,0,0,0.3)',
                 }}
               />
             ))}
@@ -439,7 +528,9 @@ function ChessBoardComponent({
               style={{
                 width: boardWidth,
                 height: boardWidth,
-                boxShadow: 'inset 0 4px 12px rgba(0,0,0,0.35)',
+                boxShadow: isVIP3DMode
+                  ? 'inset 0 6px 20px rgba(0,0,0,0.5), inset 0 0 30px rgba(0,0,0,0.2)'
+                  : 'inset 0 4px 12px rgba(0,0,0,0.35)',
               }}
             >
               {/* Сетка доски */}
