@@ -75,7 +75,7 @@ function BoardSquare({
         'transition-all duration-150 ease-out',
         'hover:brightness-110',
         'active:scale-[0.98]',
-        'group overflow-visible'
+        'group'
       )}
       style={{ 
         width: squareSize, 
@@ -160,22 +160,25 @@ function BoardSquare({
         />
       )}
 
-      {/* Фигура */}
+      {/* Фигура - с запасом места по высоте */}
       {piece && (
         <div 
-          className="relative z-10"
+          className="relative z-10 flex items-end justify-center overflow-visible"
           style={{
-            marginBottom: squareSize * 0.02,
-            transform: isSelected ? 'scale(1.06) translateY(-3px)' : 'scale(1)',
+            width: squareSize,
+            height: squareSize * 1.3,
+            marginTop: -squareSize * 0.3,
+            marginBottom: -2,
+            transform: isSelected ? 'scale(1.05) translateY(-2px)' : 'scale(1)',
             transition: 'transform 0.15s ease-out',
             filter: isLastMove 
-              ? 'drop-shadow(0 6px 12px rgba(0,0,0,0.35))' 
+              ? 'drop-shadow(0 4px 8px rgba(0,0,0,0.35))' 
               : isSelected 
-                ? 'drop-shadow(0 8px 16px rgba(0,0,0,0.4))'
-                : 'drop-shadow(0 5px 10px rgba(0,0,0,0.3))',
+                ? 'drop-shadow(0 6px 12px rgba(0,0,0,0.4))'
+                : 'drop-shadow(0 3px 6px rgba(0,0,0,0.3))',
           }}
         >
-          <ChessPiece3D piece={piece} size={squareSize * 1.15} pieceSetId={pieceSetId} />
+          <ChessPiece3D piece={piece} size={squareSize * 0.88} pieceSetId={pieceSetId} />
         </div>
       )}
       
@@ -430,9 +433,9 @@ function ChessBoardComponent({
               />
             ))}
             
-            {/* Игровая поверхность */}
+            {/* Игровая поверхность - overflow-visible для фигур */}
             <div 
-              className="relative rounded-lg overflow-hidden"
+              className="relative rounded-lg overflow-visible"
               style={{
                 width: boardWidth,
                 height: boardWidth,

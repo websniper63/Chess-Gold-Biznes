@@ -3,12 +3,13 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { ChessBoard } from '@/components/ChessBoard';
 import { GameModeSelect } from '@/components/GameModeSelect';
+import { CapturedPieces } from '@/components/CapturedPieces';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, Volume2, VolumeX } from 'lucide-react';
 import {
   GameState,
   Position,
@@ -23,6 +24,7 @@ import {
   getLegalMoves,
   PIECE_SYMBOLS
 } from '@/lib/chess';
+import { useSounds } from '@/hooks/useSounds';
 
 export default function ChessGame() {
   // Game state
@@ -35,6 +37,10 @@ export default function ChessGame() {
   const [playerColor, setPlayerColor] = useState<PieceColor>('w');
   const [boardSkin, setBoardSkin] = useState<BoardSkinId>('classic');
   const [pieceSet, setPieceSet] = useState<PieceSetId>('fantasy');
+  
+  // Sound state
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const { playSound } = useSounds(soundEnabled);
 
   // Online multiplayer state
   const [roomId, setRoomId] = useState<string | null>(null);
@@ -183,12 +189,23 @@ export default function ChessGame() {
           return;
         }
 
+        const targetPiece = gameState.board[pos.row][pos.col];
         const newGameState = makeMove(gameState, selectedSquare, pos);
         if (newGameState) {
           setGameState(newGameState);
           
+          // Play sound
+          if (targetPiece) {
+            playSound('capture');
+          } else if (newGameState.isCheck) {
+            playSound('check');
+          } else {
+            playSound('move');
+          }
+          
           if (newGameState.gameOver) {
             setShowGameEndDialog(true);
+            playSound('gameEnd');
           }
 
           if (gameSettings?.mode === 'ai' && !newGameState.gameOver) {
@@ -203,6 +220,7 @@ export default function ChessGame() {
           setLegalMoves([]);
           return;
         }
+        playSound('select');
         setSelectedSquare(pos);
         setLegalMoves(getLegalMoves(gameState, pos));
       } else {
@@ -214,11 +232,12 @@ export default function ChessGame() {
         if (gameSettings?.mode === 'ai' && piece.color !== gameSettings.playerColor) {
           return;
         }
+        playSound('select');
         setSelectedSquare(pos);
         setLegalMoves(getLegalMoves(gameState, pos));
       }
     }
-  }, [gameState, selectedSquare, legalMoves, isThinking, gameSettings, makeAIMove]);
+  }, [gameState, selectedSquare, legalMoves, isThinking, gameSettings, makeAIMove, playSound]);
 
   // Handle promotion
   const handlePromotion = useCallback((pieceType: PieceType) => {
@@ -292,55 +311,6 @@ export default function ChessGame() {
     }
   }, []);
 
-  // Create room via API
-  const createRoom = useCallback(async (playerName: string, timeControl: number) => {
-    setWaitingForOpponent(true);
-    setIsRoomCreator(true);
-    setIsConnecting(true);
-    
-    try {
-      const response = await fetch('/api/chess-room', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'createRoom',
-          playerName,
-          timeControl
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setRoomId(data.roomId);
-        setPlayerColor(data.playerColor);
-        setOnlinePlayerId(data.playerId);
-        setOnlinePlayers(data.room.players);
-        setBoardSkin('classic');
-        setGameSettings({
-          mode: 'online',
-          timeControl,
-          playerColor: data.playerColor
-        });
-        setWhiteTime(timeControl);
-        setBlackTime(timeControl);
-        
-        // Start polling for opponent
-        startPolling(data.roomId);
-      } else {
-        console.error('Failed to create room:', data.error);
-        setWaitingForOpponent(false);
-        setIsRoomCreator(false);
-      }
-    } catch (error) {
-      console.error('Create room error:', error);
-      setWaitingForOpponent(false);
-      setIsRoomCreator(false);
-    }
-    
-    setIsConnecting(false);
-  }, []);
-  
   // Start polling for room updates
   const startPolling = useCallback((roomId: string) => {
     if (pollingRef.current) {
@@ -375,6 +345,58 @@ export default function ChessGame() {
       }
     }, 500);
   }, [isGameStarted]);
+
+  // Create room via API
+  const createRoom = useCallback(async (playerName: string, timeControl: number, selectedBoardSkin: BoardSkinId = 'classic', selectedPieceSet: PieceSetId = 'fantasy') => {
+    setWaitingForOpponent(true);
+    setIsRoomCreator(true);
+    setIsConnecting(true);
+    
+    try {
+      const response = await fetch('/api/chess-room', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'createRoom',
+          playerName,
+          timeControl,
+          boardSkin: selectedBoardSkin,
+          pieceSet: selectedPieceSet
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setRoomId(data.roomId);
+        setPlayerColor(data.playerColor);
+        setOnlinePlayerId(data.playerId);
+        setOnlinePlayers(data.room.players);
+        setBoardSkin(selectedBoardSkin);
+        setPieceSet(selectedPieceSet);
+        setGameSettings({
+          mode: 'online',
+          timeControl,
+          playerColor: data.playerColor
+        });
+        setWhiteTime(timeControl);
+        setBlackTime(timeControl);
+        
+        // Start polling for opponent
+        startPolling(data.roomId);
+      } else {
+        console.error('Failed to create room:', data.error);
+        setWaitingForOpponent(false);
+        setIsRoomCreator(false);
+      }
+    } catch (error) {
+      console.error('Create room error:', error);
+      setWaitingForOpponent(false);
+      setIsRoomCreator(false);
+    }
+    
+    setIsConnecting(false);
+  }, [startPolling]);
 
   // Join room via API
   const joinRoom = useCallback(async (roomId: string, playerName: string) => {
@@ -586,28 +608,46 @@ export default function ChessGame() {
                 </div>
               </div>
 
-              {/* Chess Board */}
-              <div className="relative">
-                <ChessBoard
-                  board={gameState.board}
-                  currentTurn={gameState.currentTurn}
-                  selectedSquare={selectedSquare}
-                  legalMoves={legalMoves}
-                  lastMove={lastMove}
-                  playerColor={playerColor}
-                  isCheck={gameState.isCheck}
-                  onSquareClick={handleSquareClick}
-                  skinId={boardSkin}
+              {/* Chess Board with Side Tables */}
+              <div className="flex items-center gap-4">
+                {/* Captured by Black (Black pieces taken by White) */}
+                <CapturedPieces 
+                  capturedPieces={gameState.capturedPieces.b}
+                  color="b"
+                  boardSkinId={boardSkin}
                   pieceSetId={pieceSet}
                 />
-                {isThinking && (
-                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded-xl backdrop-blur-sm">
-                    <div className="bg-slate-800 px-6 py-3 rounded-xl flex items-center gap-3 shadow-2xl">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      <span>Компьютер думает...</span>
+                
+                <div className="relative">
+                  <ChessBoard
+                    board={gameState.board}
+                    currentTurn={gameState.currentTurn}
+                    selectedSquare={selectedSquare}
+                    legalMoves={legalMoves}
+                    lastMove={lastMove}
+                    playerColor={playerColor}
+                    isCheck={gameState.isCheck}
+                    onSquareClick={handleSquareClick}
+                    skinId={boardSkin}
+                    pieceSetId={pieceSet}
+                  />
+                  {isThinking && (
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded-xl backdrop-blur-sm">
+                      <div className="bg-slate-800 px-6 py-3 rounded-xl flex items-center gap-3 shadow-2xl">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <span>Компьютер думает...</span>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+                
+                {/* Captured by White (White pieces taken by Black) */}
+                <CapturedPieces 
+                  capturedPieces={gameState.capturedPieces.w}
+                  color="w"
+                  boardSkinId={boardSkin}
+                  pieceSetId={pieceSet}
+                />
               </div>
 
               {/* White Player Timer (bottom) */}

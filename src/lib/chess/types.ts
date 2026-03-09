@@ -109,7 +109,7 @@ export const PIECE_NAMES: Record<PieceType, string> = {
 
 // ========== НАБОРЫ ФИГУР ==========
 
-export type PieceSetId = 'fantasy' | 'geometric' | 'egyptian' | 'crystal' | 'lewis' | 'minimal';
+export type PieceSetId = 'fantasy' | 'geometric' | 'egyptian' | 'crystal' | 'lewis' | 'minimal' | 'samurai';
 
 export interface PieceSet {
   id: PieceSetId;
@@ -149,6 +149,12 @@ export const PIECE_SETS: Record<PieceSetId, PieceSet> = {
     id: 'minimal',
     name: 'Минимал',
     description: 'Ультра-современный стиль для ценителей чистоты форм',
+  },
+  samurai: {
+    id: 'samurai',
+    name: 'Самураи',
+    description: 'Японские воины в детальных доспехах с катанами',
+    isPremium: true,
   },
 };
 

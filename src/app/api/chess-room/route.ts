@@ -107,7 +107,9 @@ export async function GET(request: NextRequest) {
           gameState: room.gameState,
           isGameStarted: room.isGameStarted,
           timeControl: room.timeControl,
-          playerTimes: room.playerTimes
+          playerTimes: room.playerTimes,
+          boardSkin: room.boardSkin || 'classic',
+          pieceSet: room.pieceSet || 'fantasy'
         }
       });
     }
@@ -156,6 +158,8 @@ export async function POST(request: NextRequest) {
         isGameStarted: false,
         timeControl: time,
         playerTimes: { w: time, b: time },
+        boardSkin: body.boardSkin || 'classic',
+        pieceSet: body.pieceSet || 'fantasy',
         createdAt: Date.now(),
         lastActivity: Date.now()
       };
@@ -171,7 +175,9 @@ export async function POST(request: NextRequest) {
           id: room.id,
           players: room.players,
           gameState: room.gameState,
-          isGameStarted: room.isGameStarted
+          isGameStarted: room.isGameStarted,
+          boardSkin: room.boardSkin,
+          pieceSet: room.pieceSet
         }
       });
     }
@@ -214,7 +220,9 @@ export async function POST(request: NextRequest) {
           id: room.id,
           players: room.players,
           gameState: room.gameState,
-          isGameStarted: room.isGameStarted
+          isGameStarted: room.isGameStarted,
+          boardSkin: room.boardSkin || 'classic',
+          pieceSet: room.pieceSet || 'fantasy'
         }
       });
     }

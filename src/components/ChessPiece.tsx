@@ -1170,6 +1170,386 @@ function MinimalPiece({ piece, size }: { piece: Piece; size: number }) {
   );
 }
 
+// ========== НАБОР САМУРАЕВ ==========
+function SamuraiPiece({ piece, size }: { piece: Piece; size: number }) {
+  const isWhite = piece.color === 'w';
+  const s = size;
+  
+  // Японская цветовая палитра
+  const armorColor = isWhite 
+    ? 'linear-gradient(180deg, #f8f4e8 0%, #e8dcc0 30%, #c9b896 70%, #a89070 100%)'
+    : 'linear-gradient(180deg, #2d1f1a 0%, #1a1210 30%, #0d0a08 70%, #050403 100%)';
+  const armorFill = isWhite ? '#e8dcc0' : '#1a1210';
+  const armorStroke = isWhite ? '#8b7355' : '#d4c4a8';
+  const accentColor = isWhite ? '#c41e3a' : '#ffd700'; // Красный для белых, золотой для чёрных
+  const goldDetail = '#d4af37';
+  const steelColor = isWhite ? '#c0c0c0' : '#404040';
+
+  const renderPiece = () => {
+    switch (piece.type) {
+      case 'k': // Сёгун - император/военачальник
+        return (
+          <svg viewBox="0 0 100 130" style={{ width: s, height: s * 1.3 }}>
+            <defs>
+              <linearGradient id={`sam-k-${piece.color}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor={isWhite ? '#f8f4e8' : '#2d1f1a'}/>
+                <stop offset="50%" stopColor={isWhite ? '#c9b896' : '#1a1210'}/>
+                <stop offset="100%" stopColor={isWhite ? '#a89070' : '#0d0a08'}/>
+              </linearGradient>
+              <linearGradient id={`sam-k-armor-${piece.color}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor={isWhite ? '#d4c4a8' : '#3d2d25'}/>
+                <stop offset="50%" stopColor={isWhite ? '#e8dcc0' : '#2d1f1a'}/>
+                <stop offset="100%" stopColor={isWhite ? '#d4c4a8' : '#3d2d25'}/>
+              </linearGradient>
+            </defs>
+            
+            {/* Основание - татами */}
+            <ellipse cx="50" cy="120" rx="35" ry="8" fill={isWhite ? '#c9b896' : '#2d1f1a'} stroke={armorStroke} strokeWidth="1"/>
+            
+            {/* Тело в полном доспехе */}
+            <path d="M25 120 Q20 95 30 75 Q50 65 70 75 Q80 95 75 120 Z" fill={`url(#sam-k-${piece.color})`} stroke={armorStroke} strokeWidth="2"/>
+            
+            {/* Нагрудник до (грудная пластина) */}
+            <path d="M32 95 L50 70 L68 95 L50 115 Z" fill={`url(#sam-k-armor-${piece.color})`} stroke={goldDetail} strokeWidth="1"/>
+            
+            {/* Дракон на нагруднике */}
+            <circle cx="50" cy="90" r="8" fill="none" stroke={accentColor} strokeWidth="1.5"/>
+            <path d="M45 88 Q50 82 55 88 M45 92 Q50 98 55 92" fill="none" stroke={accentColor} strokeWidth="1"/>
+            
+            {/* Плечевые пластины содэ */}
+            <ellipse cx="25" cy="80" rx="12" ry="8" fill={`url(#sam-k-armor-${piece.color})`} stroke={goldDetail} strokeWidth="1"/>
+            <ellipse cx="75" cy="80" rx="12" ry="8" fill={`url(#sam-k-armor-${piece.color})`} stroke={goldDetail} strokeWidth="1"/>
+            
+            {/* Шея */}
+            <rect x="40" y="55" width="20" height="15" fill={`url(#sam-k-${piece.color})`}/>
+            
+            {/* Голова */}
+            <circle cx="50" cy="45" r="15" fill={`url(#sam-k-${piece.color})`} stroke={armorStroke} strokeWidth="2"/>
+            
+            {/* Лицо */}
+            <ellipse cx="50" cy="47" rx="9" ry="10" fill={isWhite ? '#f5e6d3' : '#3d2d25'}/>
+            
+            {/* Глаза */}
+            <ellipse cx="45" cy="45" rx="2" ry="1.5" fill="#000"/>
+            <ellipse cx="55" cy="45" rx="2" ry="1.5" fill="#000"/>
+            <circle cx="46" cy="44.5" r="0.5" fill="#fff"/>
+            <circle cx="56" cy="44.5" r="0.5" fill="#fff"/>
+            
+            {/* Брови */}
+            <path d="M42 42 Q45 40 48 42" fill="none" stroke={isWhite ? '#333' : '#888'} strokeWidth="1"/>
+            <path d="M52 42 Q55 40 58 42" fill="none" stroke={isWhite ? '#333' : '#888'} strokeWidth="1"/>
+            
+            {/* Кабуто (шлем) */}
+            <path d="M32 45 Q32 25 50 20 Q68 25 68 45 Q50 50 32 45 Z" fill={`url(#sam-k-armor-${piece.color})`} stroke={goldDetail} strokeWidth="1.5"/>
+            
+            {/* Маэдатэ (гребень на шлеме) */}
+            <path d="M50 20 L50 5 L45 15 L55 15 Z" fill={accentColor} stroke={goldDetail} strokeWidth="0.5"/>
+            
+            {/* Рога на шлеме */}
+            <path d="M35 30 Q25 20 30 10" fill="none" stroke={goldDetail} strokeWidth="3" strokeLinecap="round"/>
+            <path d="M65 30 Q75 20 70 10" fill="none" stroke={goldDetail} strokeWidth="3" strokeLinecap="round"/>
+            
+            {/* Мэнпо (маска) */}
+            <path d="M42 50 Q50 55 58 50" fill="none" stroke={armorStroke} strokeWidth="1"/>
+            
+            {/* Катаны за спиной */}
+            <line x1="25" y1="75" x2="20" y2="35" stroke={steelColor} strokeWidth="2"/>
+            <line x1="75" y1="75" x2="80" y2="35" stroke={steelColor} strokeWidth="2"/>
+            <rect x="18" y="33" width="4" height="5" fill={goldDetail}/>
+            <rect x="78" y="33" width="4" height="5" fill={goldDetail}/>
+          </svg>
+        );
+
+      case 'q': // Принцесса/Императрица
+        return (
+          <svg viewBox="0 0 100 130" style={{ width: s, height: s * 1.3 }}>
+            <defs>
+              <linearGradient id={`sam-q-${piece.color}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor={isWhite ? '#fff8f0' : '#3d2520'}/>
+                <stop offset="100%" stopColor={isWhite ? '#e8d4c0' : '#1a1010'}/>
+              </linearGradient>
+            </defs>
+            
+            {/* Основание - кимоно */}
+            <ellipse cx="50" cy="120" rx="30" ry="8" fill={`url(#sam-q-${piece.color})`} stroke={armorStroke} strokeWidth="1"/>
+            
+            {/* Кимоно */}
+            <path d="M25 120 Q15 90 30 70 Q50 60 70 70 Q85 90 75 120 Z" fill={`url(#sam-q-${piece.color})`} stroke={armorStroke} strokeWidth="2"/>
+            
+            {/* Узор на кимоно */}
+            <path d="M35 85 Q50 80 65 85" fill="none" stroke={accentColor} strokeWidth="2"/>
+            <path d="M30 100 Q50 95 70 100" fill="none" stroke={accentColor} strokeWidth="1.5"/>
+            <circle cx="50" cy="90" r="3" fill={accentColor}/>
+            
+            {/* Оби (пояс) */}
+            <rect x="30" y="70" width="40" height="10" fill={accentColor} stroke={goldDetail} strokeWidth="1"/>
+            <circle cx="50" cy="75" r="4" fill={goldDetail}/>
+            
+            {/* Тело */}
+            <ellipse cx="50" cy="60" rx="12" ry="15" fill={`url(#sam-q-${piece.color})`}/>
+            
+            {/* Голова */}
+            <circle cx="50" cy="40" r="12" fill={isWhite ? '#f5e6d3' : '#3d2d25'} stroke={armorStroke} strokeWidth="1"/>
+            
+            {/* Волосы */}
+            <path d="M38 40 Q38 28 50 25 Q62 28 62 40 Q58 35 50 35 Q42 35 38 40 Z" fill={isWhite ? '#1a1a1a' : '#0a0a0a'}/>
+            
+            {/* Причёска с украшениями */}
+            <path d="M38 32 Q30 28 28 35 Q32 38 38 35" fill={isWhite ? '#1a1a1a' : '#0a0a0a'}/>
+            <path d="M62 32 Q70 28 72 35 Q68 38 62 35" fill={isWhite ? '#1a1a1a' : '#0a0a0a'}/>
+            
+            {/* Заколки канзаши */}
+            <circle cx="35" cy="32" r="3" fill={accentColor}/>
+            <circle cx="65" cy="32" r="3" fill={accentColor}/>
+            <circle cx="50" cy="28" r="2" fill={goldDetail}/>
+            
+            {/* Глаза */}
+            <ellipse cx="46" cy="40" rx="2" ry="2.5" fill="#000"/>
+            <ellipse cx="54" cy="40" rx="2" ry="2.5" fill="#000"/>
+            <line x1="44" y1="38" x2="48" y2="37" stroke="#000" strokeWidth="0.5"/>
+            <line x1="52" y1="37" x2="56" y2="38" stroke="#000" strokeWidth="0.5"/>
+            
+            {/* Губы */}
+            <ellipse cx="50" cy="46" rx="2" ry="1" fill={accentColor}/>
+            
+            {/* Веер */}
+            <path d="M75 85 Q85 65 75 50 L85 50 Q95 70 85 85 Z" fill={`url(#sam-q-${piece.color})`} stroke={goldDetail} strokeWidth="1"/>
+            <line x1="78" y1="55" x2="88" y2="55" stroke={accentColor} strokeWidth="0.5"/>
+            <line x1="78" y1="60" x2="90" y2="60" stroke={accentColor} strokeWidth="0.5"/>
+            <line x1="78" y1="65" x2="91" y2="65" stroke={accentColor} strokeWidth="0.5"/>
+          </svg>
+        );
+
+      case 'r': // Замок/Башня
+        return (
+          <svg viewBox="0 0 100 120" style={{ width: s, height: s * 1.2 }}>
+            <defs>
+              <linearGradient id={`sam-r-${piece.color}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor={isWhite ? '#e8e0d0' : '#3d3530'}/>
+                <stop offset="100%" stopColor={isWhite ? '#a09888' : '#1a1510'}/>
+              </linearGradient>
+            </defs>
+            
+            {/* Основание */}
+            <rect x="15" y="100" width="70" height="15" fill={`url(#sam-r-${piece.color})`} stroke={armorStroke} strokeWidth="2" rx="2"/>
+            
+            {/* Главные стены */}
+            <rect x="22" y="50" width="56" height="50" fill={`url(#sam-r-${piece.color})`} stroke={armorStroke} strokeWidth="2"/>
+            
+            {/* Японская крыша */}
+            <path d="M10 55 Q50 30 90 55 L80 55 Q50 40 20 55 Z" fill={accentColor} stroke={goldDetail} strokeWidth="1"/>
+            
+            {/* Загнутые углы крыши */}
+            <path d="M10 55 Q5 50 12 45 L20 55 Z" fill={accentColor}/>
+            <path d="M90 55 Q95 50 88 45 L80 55 Z" fill={accentColor}/>
+            
+            {/* Ворота */}
+            <path d="M40 100 L40 75 Q50 68 60 75 L60 100 Z" fill={isWhite ? '#2d1f1a' : '#4a3525'} stroke={goldDetail} strokeWidth="1"/>
+            
+            {/* Врата в виде седзи */}
+            <rect x="43" y="78" width="5" height="15" fill="none" stroke={goldDetail} strokeWidth="0.5"/>
+            <rect x="52" y="78" width="5" height="15" fill="none" stroke={goldDetail} strokeWidth="0.5"/>
+            
+            {/* Окна */}
+            <rect x="27" y="65" width="12" height="15" fill={isWhite ? '#1a1510' : '#e8dcc0'} stroke={goldDetail} strokeWidth="1"/>
+            <line x1="33" y1="65" x2="33" y2="80" stroke={goldDetail} strokeWidth="0.5"/>
+            <line x1="27" y1="72" x2="39" y2="72" stroke={goldDetail} strokeWidth="0.5"/>
+            
+            <rect x="61" y="65" width="12" height="15" fill={isWhite ? '#1a1510' : '#e8dcc0'} stroke={goldDetail} strokeWidth="1"/>
+            <line x1="67" y1="65" x2="67" y2="80" stroke={goldDetail} strokeWidth="0.5"/>
+            <line x1="61" y1="72" x2="73" y2="72" stroke={goldDetail} strokeWidth="0.5"/>
+            
+            {/* Башенки по углам */}
+            <rect x="15" y="35" width="15" height="20" fill={`url(#sam-r-${piece.color})`} stroke={armorStroke} strokeWidth="1"/>
+            <path d="M12 35 Q22 28 32 35 Z" fill={accentColor} stroke={goldDetail} strokeWidth="0.5"/>
+            
+            <rect x="70" y="35" width="15" height="20" fill={`url(#sam-r-${piece.color})`} stroke={armorStroke} strokeWidth="1"/>
+            <path d="M68 35 Q78 28 88 35 Z" fill={accentColor} stroke={goldDetail} strokeWidth="0.5"/>
+            
+            {/* Флаг */}
+            <line x1="50" y1="30" x2="50" y2="10" stroke={goldDetail} strokeWidth="2"/>
+            <path d="M50 10 L65 15 L50 20 Z" fill={accentColor}/>
+          </svg>
+        );
+
+      case 'b': // Соэй (монах-воин)
+        return (
+          <svg viewBox="0 0 100 120" style={{ width: s, height: s * 1.2 }}>
+            <defs>
+              <linearGradient id={`sam-b-${piece.color}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor={isWhite ? '#e8e0d8' : '#2d2520'}/>
+                <stop offset="100%" stopColor={isWhite ? '#a09890' : '#1a1512'}/>
+              </linearGradient>
+            </defs>
+            
+            {/* Основание */}
+            <ellipse cx="50" cy="110" rx="25" ry="8" fill={`url(#sam-b-${piece.color})`} stroke={armorStroke} strokeWidth="1"/>
+            
+            {/* Роба */}
+            <path d="M25 110 Q15 80 30 55 Q50 45 70 55 Q85 80 75 110 Z" fill={`url(#sam-b-${piece.color})`} stroke={armorStroke} strokeWidth="2"/>
+            
+            {/* Складки робы */}
+            <line x1="35" y1="60" x2="30" y2="105" stroke={armorStroke} strokeWidth="1" opacity="0.5"/>
+            <line x1="50" y1="50" x2="50" y2="105" stroke={armorStroke} strokeWidth="1" opacity="0.5"/>
+            <line x1="65" y1="60" x2="70" y2="105" stroke={armorStroke} strokeWidth="1" opacity="0.5"/>
+            
+            {/* Голова */}
+            <circle cx="50" cy="40" r="14" fill={isWhite ? '#e8d4c0' : '#2d1f15'}/>
+            
+            {/* Капюшон */}
+            <path d="M32 48 Q25 35 35 22 Q50 15 65 22 Q75 35 68 48 Q50 55 32 48 Z" fill={`url(#sam-b-${piece.color})`} stroke={armorStroke} strokeWidth="2"/>
+            
+            {/* Лицо */}
+            <ellipse cx="50" cy="42" rx="8" ry="9" fill={isWhite ? '#d4c4b0' : '#3d2d25'}/>
+            
+            {/* Глаза (мудрые) */}
+            <ellipse cx="46" cy="40" rx="2" ry="1.5" fill="#000"/>
+            <ellipse cx="54" cy="40" rx="2" ry="1.5" fill="#000"/>
+            
+            {/* Медитативное выражение */}
+            <path d="M46 46 Q50 48 54 46" fill="none" stroke={isWhite ? '#8b7355' : '#a08060'} strokeWidth="1"/>
+            
+            {/* Чётки */}
+            <circle cx="25" cy="75" r="3" fill={accentColor}/>
+            <circle cx="22" cy="80" r="2.5" fill={accentColor}/>
+            <circle cx="20" cy="86" r="2" fill={accentColor}/>
+            <line x1="25" y1="72" x2="20" y2="90" stroke={goldDetail} strokeWidth="0.5"/>
+            
+            {/* Посох сякудзё */}
+            <line x1="78" y1="110" x2="78" y2="25" stroke={isWhite ? '#654321' : '#8b7355'} strokeWidth="4"/>
+            
+            {/* Металлические кольца на посохе */}
+            <circle cx="78" cy="22" r="6" fill="none" stroke={steelColor} strokeWidth="2"/>
+            <circle cx="78" cy="22" r="10" fill="none" stroke={steelColor} strokeWidth="1.5"/>
+            <circle cx="78" cy="22" r="14" fill="none" stroke={steelColor} strokeWidth="1"/>
+            
+            {/* Символ ом на робе */}
+            <circle cx="50" cy="75" r="8" fill="none" stroke={accentColor} strokeWidth="1.5"/>
+            <path d="M46 75 L50 70 L54 75 L50 80 Z" fill={accentColor} opacity="0.5"/>
+          </svg>
+        );
+
+      case 'n': // Самурай на коне
+        return (
+          <svg viewBox="0 0 100 120" style={{ width: s, height: s * 1.2 }}>
+            <defs>
+              <linearGradient id={`sam-n-${piece.color}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor={isWhite ? '#f0e8dc' : '#3d2d25'}/>
+                <stop offset="100%" stopColor={isWhite ? '#b0a090' : '#1a1510'}/>
+              </linearGradient>
+            </defs>
+            
+            {/* Основание */}
+            <ellipse cx="50" cy="110" rx="30" ry="8" fill={`url(#sam-n-${piece.color})`} stroke={armorStroke} strokeWidth="1"/>
+            
+            {/* Тело лошади */}
+            <ellipse cx="55" cy="90" rx="30" ry="18" fill={`url(#sam-n-${piece.color})`} stroke={armorStroke} strokeWidth="2"/>
+            
+            {/* Ноги лошади */}
+            <rect x="32" y="98" width="8" height="15" fill={`url(#sam-n-${piece.color})`} stroke={armorStroke} strokeWidth="1"/>
+            <rect x="45" y="98" width="8" height="15" fill={`url(#sam-n-${piece.color})`} stroke={armorStroke} strokeWidth="1"/>
+            <rect x="58" y="98" width="8" height="15" fill={`url(#sam-n-${piece.color})`} stroke={armorStroke} strokeWidth="1"/>
+            <rect x="72" y="98" width="8" height="15" fill={`url(#sam-n-${piece.color})`} stroke={armorStroke} strokeWidth="1"/>
+            
+            {/* Шея лошади */}
+            <path d="M30 85 Q20 60 28 45 Q38 40 42 50 Q40 70 35 85 Z" fill={`url(#sam-n-${piece.color})`} stroke={armorStroke} strokeWidth="2"/>
+            
+            {/* Голова лошади */}
+            <ellipse cx="28" cy="45" rx="12" ry="10" fill={`url(#sam-n-${piece.color})`} stroke={armorStroke} strokeWidth="2"/>
+            
+            {/* Морда */}
+            <ellipse cx="18" cy="52" rx="8" ry="6" fill={`url(#sam-n-${piece.color})`} stroke={armorStroke} strokeWidth="1"/>
+            
+            {/* Глаз лошади */}
+            <circle cx="25" cy="42" r="3" fill="#000"/>
+            <circle cx="24" cy="41" r="1" fill="#fff"/>
+            
+            {/* Уши лошади */}
+            <polygon points="30,35 35,25 38,38" fill={`url(#sam-n-${piece.color})`} stroke={armorStroke} strokeWidth="1"/>
+            <polygon points="22,35 18,22 28,32" fill={`url(#sam-n-${piece.color})`} stroke={armorStroke} strokeWidth="1"/>
+            
+            {/* Грива */}
+            <path d="M35 42 Q45 35 42 50 Q50 45 45 60 Q55 55 48 70" fill="none" stroke={isWhite ? '#333' : '#888'} strokeWidth="3"/>
+            
+            {/* Седло */}
+            <rect x="42" y="70" width="25" height="8" fill={accentColor} stroke={goldDetail} strokeWidth="1"/>
+            
+            {/* Всадник - самурай */}
+            <rect x="45" y="50" width="20" height="25" fill={`url(#sam-n-${piece.color})`} stroke={armorStroke} strokeWidth="1"/>
+            
+            {/* Голова всадника */}
+            <circle cx="55" cy="40" r="10" fill={isWhite ? '#f5e6d3' : '#3d2d25'} stroke={armorStroke} strokeWidth="1"/>
+            
+            {/* Шлем кабуто */}
+            <path d="M43 42 Q43 32 55 28 Q67 32 67 42 Q55 45 43 42 Z" fill={`url(#sam-n-${piece.color})`} stroke={goldDetail} strokeWidth="1"/>
+            
+            {/* Гребень на шлеме */}
+            <path d="M55 28 L55 20" stroke={accentColor} strokeWidth="3" strokeLinecap="round"/>
+            
+            {/* Глаза */}
+            <ellipse cx="51" cy="40" rx="1.5" ry="1" fill="#000"/>
+            <ellipse cx="59" cy="40" rx="1.5" ry="1" fill="#000"/>
+            
+            {/* Яри (копьё) */}
+            <line x1="75" y1="85" x2="75" y2="15" stroke={isWhite ? '#654321' : '#8b7355'} strokeWidth="3"/>
+            <polygon points="75,15 72,5 78,5" fill={steelColor} stroke={goldDetail} strokeWidth="0.5"/>
+          </svg>
+        );
+
+      case 'p': // Асигару (пехотинец)
+        return (
+          <svg viewBox="0 0 100 110" style={{ width: s, height: s * 1.1 }}>
+            <defs>
+              <linearGradient id={`sam-p-${piece.color}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor={isWhite ? '#f0e8dc' : '#3d2d25'}/>
+                <stop offset="100%" stopColor={isWhite ? '#b0a090' : '#1a1510'}/>
+              </linearGradient>
+            </defs>
+            
+            {/* Основание */}
+            <ellipse cx="50" cy="100" rx="22" ry="7" fill={`url(#sam-p-${piece.color})`} stroke={armorStroke} strokeWidth="1"/>
+            
+            {/* Тело в лёгкой броне */}
+            <path d="M30 100 Q25 75 35 60 Q50 50 65 60 Q75 75 70 100 Z" fill={`url(#sam-p-${piece.color})`} stroke={armorStroke} strokeWidth="2"/>
+            
+            {/* Простая грудная пластина */}
+            <path d="M38 80 L50 65 L62 80 L50 95 Z" fill={`url(#sam-p-${piece.color})`} stroke={goldDetail} strokeWidth="0.5"/>
+            
+            {/* Голова */}
+            <circle cx="50" cy="45" r="12" fill={isWhite ? '#f5e6d3' : '#3d2d25'} stroke={armorStroke} strokeWidth="1"/>
+            
+            {/* Простой шлем дзингаса */}
+            <path d="M36 47 Q36 35 50 32 Q64 35 64 47 Q50 50 36 47 Z" fill={`url(#sam-p-${piece.color})`} stroke={armorStroke} strokeWidth="1.5"/>
+            
+            {/* Гребень на шлеме */}
+            <ellipse cx="50" cy="34" rx="8" ry="3" fill={accentColor} stroke={goldDetail} strokeWidth="0.5"/>
+            
+            {/* Глаза */}
+            <ellipse cx="46" cy="45" rx="2" ry="1.5" fill="#000"/>
+            <ellipse cx="54" cy="45" rx="2" ry="1.5" fill="#000"/>
+            
+            {/* Голова повязка (хатимаки) */}
+            <line x1="38" y1="42" x2="62" y2="42" stroke={accentColor} strokeWidth="3"/>
+            
+            {/* Катана */}
+            <line x1="70" y1="95" x2="75" y2="50" stroke={steelColor} strokeWidth="2"/>
+            <rect x="72" y="48" width="6" height="8" fill={goldDetail}/>
+            
+            {/* Яри (копьё) - опирается */}
+            <line x1="25" y1="95" x2="30" y2="30" stroke={isWhite ? '#654321' : '#8b7355'} strokeWidth="2"/>
+            <polygon points="30,30 28,22 32,22" fill={steelColor}/>
+          </svg>
+        );
+    }
+  };
+
+  return (
+    <div style={{ width: s, height: s * 1.3, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+      {renderPiece()}
+    </div>
+  );
+}
+
 // ========== ГЛАВНЫЙ КОМПОНЕНТ ==========
 function ChessPieceComponent({ piece, size = 60, className = '', pieceSetId = 'fantasy' }: ChessPieceProps) {
   const pieceSize = size;
@@ -1188,6 +1568,8 @@ function ChessPieceComponent({ piece, size = 60, className = '', pieceSetId = 'f
         return <LewisPiece piece={piece} size={pieceSize} />;
       case 'minimal':
         return <MinimalPiece piece={piece} size={pieceSize} />;
+      case 'samurai':
+        return <SamuraiPiece piece={piece} size={pieceSize} />;
       default:
         return <FantasyPiece piece={piece} size={pieceSize} />;
     }
