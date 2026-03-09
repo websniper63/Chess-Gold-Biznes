@@ -262,6 +262,147 @@ export function GameModeSelect({
             </div>
           )}
 
+          {/* VIP Наборы (Фигуры + Доска вместе) */}
+          {(mode === 'ai' || mode === 'local') && (
+            <div className="space-y-4 p-5 bg-gradient-to-br from-amber-900/30 via-yellow-900/20 to-amber-800/30 rounded-xl border border-yellow-600/30">
+              <div className="flex items-center gap-2">
+                <Crown className="w-6 h-6 text-yellow-400" />
+                <Label className="text-white font-bold text-xl">
+                  VIP Коллекция
+                </Label>
+                <span className="ml-2 text-xs bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-bold px-2 py-1 rounded-full">
+                  ✨ ЭКСКЛЮЗИВ
+                </span>
+              </div>
+              <p className="text-sm text-slate-400">
+                Готовые наборы с идеально подобранными досками и фигурами
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* VIP 3D Egypt Set */}
+                <button
+                  onClick={() => {
+                    setPieceSet('vip3d');
+                    setBoardSkin('vip3d');
+                  }}
+                  className={`relative p-5 rounded-2xl transition-all duration-300 text-left group overflow-hidden ${
+                    pieceSet === 'vip3d' && boardSkin === 'vip3d'
+                      ? 'ring-2 ring-yellow-400 bg-gradient-to-br from-amber-800/60 to-yellow-900/40 scale-[1.02] shadow-2xl shadow-yellow-500/30' 
+                      : 'hover:bg-slate-700/40 bg-slate-800/30 border border-slate-600/30 hover:border-yellow-500/40'
+                  }`}
+                >
+                  {/* VIP Badge */}
+                  <div className="absolute top-3 right-3 bg-gradient-to-r from-yellow-400 to-amber-500 text-xs text-black font-bold px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
+                    <Crown className="w-3 h-3" /> VIP
+                  </div>
+                  
+                  {/* Preview */}
+                  <div className="flex items-center gap-4 mb-4">
+                    {/* Board preview */}
+                    <div 
+                      className="w-16 h-16 rounded-lg shadow-lg"
+                      style={{
+                        background: `
+                          repeating-conic-gradient(
+                            #f5e6c8 0deg 90deg,
+                            #8b6914 90deg 180deg
+                          ) from 0deg
+                        `,
+                        border: '3px solid #ffd700',
+                      }}
+                    />
+                    
+                    {/* Piece preview */}
+                    <div className="flex gap-1">
+                      <ChessPiece3D piece={{ type: 'k', color: 'w' }} size={45} pieceSetId="vip3d" />
+                    </div>
+                  </div>
+                  
+                  <div className="font-bold text-white text-lg mb-1">
+                    Египетская коллекция 3D
+                  </div>
+                  <div className="text-sm text-slate-400">
+                    Фараоны, Анубис, Гор • Золотые акценты • 3D бюсты
+                  </div>
+                  
+                  {/* Features */}
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <span className="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded-full">
+                      🏛️ Древний Египет
+                    </span>
+                    <span className="text-xs bg-amber-500/20 text-amber-300 px-2 py-1 rounded-full">
+                      💎 3D рендер
+                    </span>
+                    <span className="text-xs bg-orange-500/20 text-orange-300 px-2 py-1 rounded-full">
+                      ✨ Золото
+                    </span>
+                  </div>
+                </button>
+                
+                {/* Classic VIP Set (using existing premium pieces) */}
+                <button
+                  onClick={() => {
+                    setPieceSet('crystal');
+                    setBoardSkin('glass');
+                  }}
+                  className={`relative p-5 rounded-2xl transition-all duration-300 text-left group overflow-hidden ${
+                    pieceSet === 'crystal' && boardSkin === 'glass'
+                      ? 'ring-2 ring-cyan-400 bg-gradient-to-br from-cyan-900/60 to-blue-900/40 scale-[1.02] shadow-2xl shadow-cyan-500/30' 
+                      : 'hover:bg-slate-700/40 bg-slate-800/30 border border-slate-600/30 hover:border-cyan-500/40'
+                  }`}
+                >
+                  {/* Premium Badge */}
+                  <div className="absolute top-3 right-3 bg-gradient-to-r from-cyan-400 to-blue-500 text-xs text-black font-bold px-3 py-1 rounded-full shadow-lg">
+                    ★ PRO
+                  </div>
+                  
+                  {/* Preview */}
+                  <div className="flex items-center gap-4 mb-4">
+                    {/* Board preview */}
+                    <div 
+                      className="w-16 h-16 rounded-lg shadow-lg"
+                      style={{
+                        background: `
+                          repeating-conic-gradient(
+                            rgba(255,255,255,0.85) 0deg 90deg,
+                            rgba(100,150,200,0.75) 90deg 180deg
+                          ) from 0deg
+                        `,
+                        border: '3px solid rgba(255,255,255,0.5)',
+                        boxShadow: '0 4px 12px rgba(100,150,255,0.3)',
+                      }}
+                    />
+                    
+                    {/* Piece preview */}
+                    <div className="flex gap-1">
+                      <ChessPiece3D piece={{ type: 'k', color: 'w' }} size={45} pieceSetId="crystal" />
+                    </div>
+                  </div>
+                  
+                  <div className="font-bold text-white text-lg mb-1">
+                    Хрустальный дворец
+                  </div>
+                  <div className="text-sm text-slate-400">
+                    Кристальные фигуры • Стеклянная доска • Драгоценности
+                  </div>
+                  
+                  {/* Features */}
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <span className="text-xs bg-cyan-500/20 text-cyan-300 px-2 py-1 rounded-full">
+                      💎 Кристаллы
+                    </span>
+                    <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full">
+                      🪟 Стекло
+                    </span>
+                    <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full">
+                      💜 Драгоценности
+                    </span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Настройки для AI */}
           {mode === 'ai' && (
             <div className="space-y-4 p-4 bg-slate-700/50 rounded-lg">

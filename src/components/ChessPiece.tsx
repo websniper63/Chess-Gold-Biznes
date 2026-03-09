@@ -1550,6 +1550,416 @@ function SamuraiPiece({ piece, size }: { piece: Piece; size: number }) {
   );
 }
 
+// ========== VIP 3D НАБОР (РЕАЛИСТИЧНЫЕ БЮСТЫ) ==========
+function VIP3DPiece({ piece, size }: { piece: Piece; size: number }) {
+  const isWhite = piece.color === 'w';
+  const s = size;
+  
+  // Премиальные материалы с металлическими эффектами
+  const baseMaterial = isWhite 
+    ? 'linear-gradient(180deg, #fffef5 0%, #f5e6c8 20%, #d4b896 60%, #a08060 100%)'
+    : 'linear-gradient(180deg, #4a4540 0%, #2d2820 20%, #1a1510 60%, #0d0a05 100%)';
+  
+  const baseFill = isWhite ? '#f5e6c8' : '#2d2820';
+  const highlightColor = isWhite ? '#fffef0' : '#5a5550';
+  const shadowColor = isWhite ? '#a08060' : '#0d0a05';
+  const goldAccent = '#ffd700';
+  const bronzeAccent = isWhite ? '#d4a574' : '#8b7355';
+  
+  // Общий эффект 3D для всех фигур
+  const baseFilter = `
+    drop-shadow(2px 4px 6px rgba(0,0,0,0.4)) 
+    drop-shadow(0 0 15px ${isWhite ? 'rgba(255,215,0,0.2)' : 'rgba(100,100,100,0.3)'})
+  `;
+
+  const renderPiece = () => {
+    switch (piece.type) {
+      case 'k': // Король - Фараон / Император
+        return (
+          <svg viewBox="0 0 100 130" style={{ width: s, height: s * 1.3, filter: baseFilter }}>
+            <defs>
+              <linearGradient id={`vip-k-${piece.color}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={highlightColor}/>
+                <stop offset="30%" stopColor={baseFill}/>
+                <stop offset="70%" stopColor={shadowColor}/>
+                <stop offset="100%" stopColor={isWhite ? '#806040' : '#050301'}/>
+              </linearGradient>
+              <linearGradient id={`vip-k-gold-${piece.color}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#fff8dc"/>
+                <stop offset="30%" stopColor="#ffd700"/>
+                <stop offset="70%" stopColor="#b8860b"/>
+                <stop offset="100%" stopColor="#8b6914"/>
+              </linearGradient>
+              <radialGradient id={`vip-k-shine-${piece.color}`} cx="30%" cy="30%">
+                <stop offset="0%" stopColor={isWhite ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.3)'}/>
+                <stop offset="100%" stopColor="transparent"/>
+              </radialGradient>
+              <filter id={`vip-glow-${piece.color}`}>
+                <feGaussianBlur stdDeviation="2" result="blur"/>
+                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+              </filter>
+            </defs>
+            
+            {/* Роскошное основание с золотой каймой */}
+            <ellipse cx="50" cy="125" rx="32" ry="8" fill={`url(#vip-k-gold-${piece.color})`} stroke="#8b6914" strokeWidth="1"/>
+            <ellipse cx="50" cy="123" rx="28" ry="6" fill={`url(#vip-k-${piece.color})`}/>
+            <ellipse cx="50" cy="123" rx="20" ry="4" fill="url(#vip-k-shine-${piece.color})"/>
+            
+            {/* Пьедестал колонны */}
+            <path d="M30 100 L35 120 L65 120 L70 100 Z" fill={`url(#vip-k-${piece.color})`} stroke={bronzeAccent} strokeWidth="1"/>
+            <rect x="32" y="95" width="36" height="8" fill={`url(#vip-k-gold-${piece.color})`}/>
+            
+            {/* Основание бюста */}
+            <ellipse cx="50" cy="95" rx="25" ry="7" fill={`url(#vip-k-${piece.color})`} stroke={shadowColor} strokeWidth="1"/>
+            
+            {/* Плечи и торс */}
+            <path d="M25 95 Q20 75 30 60 Q50 55 70 60 Q80 75 75 95 Z" fill={`url(#vip-k-${piece.color})`} stroke={shadowColor} strokeWidth="1.5"/>
+            
+            {/* Украшения на плечах */}
+            <circle cx="30" cy="75" r="4" fill={`url(#vip-k-gold-${piece.color})`}/>
+            <circle cx="70" cy="75" r="4" fill={`url(#vip-k-gold-${piece.color})`}/>
+            
+            {/* Шея */}
+            <ellipse cx="50" cy="55" rx="12" ry="8" fill={`url(#vip-k-${piece.color})`}/>
+            
+            {/* Голова */}
+            <ellipse cx="50" cy="38" rx="18" ry="22" fill={`url(#vip-k-${piece.color})`} stroke={shadowColor} strokeWidth="1"/>
+            
+            {/* Лицо с рельефом */}
+            <ellipse cx="50" cy="40" rx="14" ry="16" fill={isWhite ? '#f0e0c8' : '#3a3530'} stroke={shadowColor} strokeWidth="0.5"/>
+            
+            {/* Блик на лице */}
+            <ellipse cx="45" cy="35" rx="6" ry="8" fill="url(#vip-k-shine-${piece.color})" opacity="0.6"/>
+            
+            {/* Глаза */}
+            <ellipse cx="44" cy="38" rx="3" ry="2" fill="#000"/>
+            <ellipse cx="56" cy="38" rx="3" ry="2" fill="#000"/>
+            <circle cx="43" cy="37" r="0.8" fill="#fff"/>
+            <circle cx="55" cy="37" r="0.8" fill="#fff"/>
+            
+            {/* Нос */}
+            <path d="M50 40 L48 48 L52 48 Z" fill={shadowColor} opacity="0.4"/>
+            
+            {/* Губы */}
+            <ellipse cx="50" cy="52" rx="4" ry="1.5" fill={isWhite ? '#c09080' : '#4a4540'}/>
+            
+            {/* Борода (для чёрных) */}
+            {!isWhite && (
+              <path d="M42 55 Q50 65 58 55" fill="none" stroke="#333" strokeWidth="1.5"/>
+            )}
+            
+            {/* Головной убор (корона/немес) */}
+            <path d="M30 45 Q28 25 50 18 Q72 25 70 45 Q50 50 30 45 Z" fill={`url(#vip-k-gold-${piece.color})`} stroke="#8b6914" strokeWidth="1"/>
+            
+            {/* Урей (кобра) на короне */}
+            <path d="M50 18 Q48 10 50 5 Q52 10 50 18" fill={goldAccent} stroke="#8b6914" strokeWidth="0.5"/>
+            <circle cx="50" cy="5" r="2" fill="#ff0000"/>
+            
+            {/* Боковые полосы немеса */}
+            <path d="M30 40 L22 55 L25 60 L35 50 Z" fill={`url(#vip-k-gold-${piece.color})`}/>
+            <path d="M70 40 L78 55 L75 60 L65 50 Z" fill={`url(#vip-k-gold-${piece.color})`}/>
+          </svg>
+        );
+
+      case 'q': // Ферзь - Царица / Богиня
+        return (
+          <svg viewBox="0 0 100 130" style={{ width: s, height: s * 1.3, filter: baseFilter }}>
+            <defs>
+              <linearGradient id={`vip-q-${piece.color}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={highlightColor}/>
+                <stop offset="50%" stopColor={baseFill}/>
+                <stop offset="100%" stopColor={shadowColor}/>
+              </linearGradient>
+              <linearGradient id={`vip-q-gold-${piece.color}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#fff8dc"/>
+                <stop offset="50%" stopColor="#ffd700"/>
+                <stop offset="100%" stopColor="#b8860b"/>
+              </linearGradient>
+              <linearGradient id={`vip-q-gem-${piece.color}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ff69b4"/>
+                <stop offset="50%" stopColor="#ff1493"/>
+                <stop offset="100%" stopColor="#c71585"/>
+              </linearGradient>
+            </defs>
+            
+            {/* Основание */}
+            <ellipse cx="50" cy="125" rx="30" ry="7" fill={`url(#vip-q-gold-${piece.color})`} stroke="#8b6914" strokeWidth="1"/>
+            <ellipse cx="50" cy="123" rx="26" ry="5" fill={`url(#vip-q-${piece.color})`}/>
+            
+            {/* Пьедестал */}
+            <path d="M32 100 L36 118 L64 118 L68 100 Z" fill={`url(#vip-q-${piece.color})`} stroke={bronzeAccent} strokeWidth="1"/>
+            <ellipse cx="50" cy="100" rx="22" ry="6" fill={`url(#vip-q-gold-${piece.color})`}/>
+            
+            {/* Платье/тело */}
+            <path d="M28 100 Q22 70 35 55 Q50 50 65 55 Q78 70 72 100 Z" fill={`url(#vip-q-${piece.color})`} stroke={shadowColor} strokeWidth="1.5"/>
+            
+            {/* Украшения на платье */}
+            <path d="M35 70 L50 65 L65 70 L50 80 Z" fill={`url(#vip-q-gold-${piece.color})`} opacity="0.6"/>
+            <circle cx="50" cy="72" r="4" fill={`url(#vip-q-gem-${piece.color})`}/>
+            
+            {/* Шея с ожерельем */}
+            <ellipse cx="50" cy="52" rx="10" ry="6" fill={`url(#vip-q-${piece.color})`}/>
+            <path d="M40 52 Q50 58 60 52" fill="none" stroke={`url(#vip-q-gold-${piece.color})`} strokeWidth="2"/>
+            
+            {/* Голова */}
+            <ellipse cx="50" cy="36" rx="16" ry="20" fill={`url(#vip-q-${piece.color})`} stroke={shadowColor} strokeWidth="1"/>
+            
+            {/* Лицо */}
+            <ellipse cx="50" cy="38" rx="12" ry="14" fill={isWhite ? '#f5e5d5' : '#3a3530'}/>
+            
+            {/* Глаза с макияжем */}
+            <ellipse cx="45" cy="36" rx="2.5" ry="1.5" fill="#000"/>
+            <ellipse cx="55" cy="36" rx="2.5" ry="1.5" fill="#000"/>
+            <path d="M42 34 Q45 32 48 34" fill="none" stroke={isWhite ? '#4169e1' : '#8b4513'} strokeWidth="1"/>
+            <path d="M52 34 Q55 32 58 34" fill="none" stroke={isWhite ? '#4169e1' : '#8b4513'} strokeWidth="1"/>
+            
+            {/* Губы */}
+            <ellipse cx="50" cy="46" rx="3" ry="1.5" fill={isWhite ? '#cc6688' : '#5a4540'}/>
+            
+            {/* Прическа */}
+            <path d="M34 35 Q32 15 50 12 Q68 15 66 35 Q50 30 34 35 Z" fill={isWhite ? '#2a1810' : '#0a0502'} stroke={shadowColor} strokeWidth="1"/>
+            
+            {/* Корона */}
+            <path d="M36 28 L40 18 L45 25 L50 10 L55 25 L60 18 L64 28 Z" fill={`url(#vip-q-gold-${piece.color})`} stroke="#8b6914" strokeWidth="1"/>
+            
+            {/* Драгоценности в короне */}
+            <circle cx="50" cy="14" r="3" fill={`url(#vip-q-gem-${piece.color})`}/>
+            <circle cx="40" cy="22" r="2" fill="#00ff00"/>
+            <circle cx="60" cy="22" r="2" fill="#00ff00"/>
+            
+            {/* Серьги */}
+            <circle cx="34" cy="42" r="2" fill={`url(#vip-q-gem-${piece.color})`}/>
+            <circle cx="66" cy="42" r="2" fill={`url(#vip-q-gem-${piece.color})`}/>
+          </svg>
+        );
+
+      case 'r': // Ладья - Анубис / Страж
+        return (
+          <svg viewBox="0 0 100 120" style={{ width: s, height: s * 1.2, filter: baseFilter }}>
+            <defs>
+              <linearGradient id={`vip-r-${piece.color}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={highlightColor}/>
+                <stop offset="50%" stopColor={baseFill}/>
+                <stop offset="100%" stopColor={shadowColor}/>
+              </linearGradient>
+            </defs>
+            
+            {/* Основание */}
+            <ellipse cx="50" cy="115" rx="28" ry="7" fill={`url(#vip-k-gold-${piece.color})`}/>
+            <ellipse cx="50" cy="113" rx="24" ry="5" fill={`url(#vip-r-${piece.color})`}/>
+            
+            {/* Квадратный пьедестал */}
+            <rect x="30" y="90" width="40" height="22" fill={`url(#vip-r-${piece.color})`} stroke={shadowColor} strokeWidth="1" rx="2"/>
+            <rect x="35" y="85" width="30" height="8" fill={`url(#vip-k-gold-${piece.color})`}/>
+            
+            {/* Торс */}
+            <path d="M32 85 Q28 65 38 50 Q50 45 62 50 Q72 65 68 85 Z" fill={`url(#vip-r-${piece.color})`} stroke={shadowColor} strokeWidth="1.5"/>
+            
+            {/* Мускулатура */}
+            <path d="M38 65 L50 58 L62 65" fill="none" stroke={shadowColor} strokeWidth="1" opacity="0.5"/>
+            <path d="M42 70 L50 75 L58 70" fill="none" stroke={shadowColor} strokeWidth="1" opacity="0.5"/>
+            
+            {/* Шея */}
+            <ellipse cx="50" cy="48" rx="10" ry="7" fill={`url(#vip-r-${piece.color})`}/>
+            
+            {/* Голова шакала (Анубис) */}
+            <ellipse cx="50" cy="30" rx="15" ry="18" fill={`url(#vip-r-${piece.color})`} stroke={shadowColor} strokeWidth="1"/>
+            
+            {/* Морда */}
+            <ellipse cx="50" cy="38" rx="10" ry="12" fill={isWhite ? '#e8dcc8' : '#252018'}/>
+            
+            {/* Нос */}
+            <ellipse cx="50" cy="45" rx="4" ry="3" fill="#1a1a1a"/>
+            <ellipse cx="50" cy="44" rx="1.5" ry="1" fill="#444"/>
+            
+            {/* Глаза */}
+            <ellipse cx="44" cy="28" rx="3" ry="4" fill="#ffd700"/>
+            <ellipse cx="56" cy="28" rx="3" ry="4" fill="#ffd700"/>
+            <ellipse cx="44" cy="28" rx="1.5" ry="2" fill="#000"/>
+            <ellipse cx="56" cy="28" rx="1.5" ry="2" fill="#000"/>
+            
+            {/* Уши шакала */}
+            <polygon points="35,25 30,5 42,20" fill={`url(#vip-r-${piece.color})`} stroke={shadowColor} strokeWidth="1"/>
+            <polygon points="65,25 70,5 58,20" fill={`url(#vip-r-${piece.color})`} stroke={shadowColor} strokeWidth="1"/>
+            <polygon points="36,22 33,10 40,18" fill={isWhite ? '#d4c4a8' : '#1a1510'}/>
+            <polygon points="64,22 67,10 60,18" fill={isWhite ? '#d4c4a8' : '#1a1510'}/>
+            
+            {/* Ошейник */}
+            <path d="M35 50 Q50 55 65 50" fill="none" stroke={`url(#vip-k-gold-${piece.color})`} strokeWidth="3"/>
+            <circle cx="50" cy="53" r="3" fill="#ff0000"/>
+          </svg>
+        );
+
+      case 'b': // Слон - Гор / Жрец
+        return (
+          <svg viewBox="0 0 100 120" style={{ width: s, height: s * 1.2, filter: baseFilter }}>
+            <defs>
+              <linearGradient id={`vip-b-${piece.color}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={highlightColor}/>
+                <stop offset="50%" stopColor={baseFill}/>
+                <stop offset="100%" stopColor={shadowColor}/>
+              </linearGradient>
+            </defs>
+            
+            {/* Основание */}
+            <ellipse cx="50" cy="115" rx="26" ry="6" fill={`url(#vip-k-gold-${piece.color})`}/>
+            <ellipse cx="50" cy="113" rx="22" ry="4" fill={`url(#vip-b-${piece.color})`}/>
+            
+            {/* Пьедестал */}
+            <path d="M32 88 L38 108 L62 108 L68 88 Z" fill={`url(#vip-b-${piece.color})`} stroke={shadowColor} strokeWidth="1"/>
+            <ellipse cx="50" cy="88" rx="20" ry="5" fill={`url(#vip-k-gold-${piece.color})`}/>
+            
+            {/* Тело в мантии */}
+            <path d="M28 88 Q20 60 35 45 Q50 40 65 45 Q80 60 72 88 Z" fill={`url(#vip-b-${piece.color})`} stroke={shadowColor} strokeWidth="1.5"/>
+            
+            {/* Складки мантии */}
+            <path d="M35 55 L32 85" fill="none" stroke={shadowColor} strokeWidth="1" opacity="0.5"/>
+            <path d="M50 45 L50 85" fill="none" stroke={shadowColor} strokeWidth="1" opacity="0.5"/>
+            <path d="M65 55 L68 85" fill="none" stroke={shadowColor} strokeWidth="1" opacity="0.5"/>
+            
+            {/* Амулет */}
+            <circle cx="50" cy="60" r="6" fill={`url(#vip-k-gold-${piece.color})`}/>
+            <circle cx="50" cy="60" r="3" fill="#00ff00"/>
+            
+            {/* Шея */}
+            <ellipse cx="50" cy="42" rx="9" ry="6" fill={`url(#vip-b-${piece.color})`}/>
+            
+            {/* Голова сокола (Гор) */}
+            <ellipse cx="50" cy="28" rx="14" ry="16" fill={`url(#vip-b-${piece.color})`} stroke={shadowColor} strokeWidth="1"/>
+            
+            {/* Клюв */}
+            <path d="M44 35 L50 45 L56 35 Z" fill={isWhite ? '#d4a574' : '#4a3a30'}/>
+            
+            {/* Глаза сокола */}
+            <ellipse cx="44" cy="24" rx="4" ry="3" fill="#fff"/>
+            <ellipse cx="56" cy="24" rx="4" ry="3" fill="#fff"/>
+            <circle cx="44" cy="24" r="2" fill="#000"/>
+            <circle cx="56" cy="24" r="2" fill="#000"/>
+            
+            {/* Перо/головной убор */}
+            <path d="M50 15 L45 5 L50 10 L55 5 Z" fill={`url(#vip-k-gold-${piece.color})`}/>
+            
+            {/* Корона Верхнего Египта */}
+            <path d="M36 28 Q38 18 50 16 Q62 18 64 28 Q50 32 36 28 Z" fill={`url(#vip-k-gold-${piece.color})`} stroke="#8b6914" strokeWidth="0.5"/>
+          </svg>
+        );
+
+      case 'n': // Конь - Сет / Воин
+        return (
+          <svg viewBox="0 0 100 120" style={{ width: s, height: s * 1.2, filter: baseFilter }}>
+            <defs>
+              <linearGradient id={`vip-n-${piece.color}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={highlightColor}/>
+                <stop offset="50%" stopColor={baseFill}/>
+                <stop offset="100%" stopColor={shadowColor}/>
+              </linearGradient>
+            </defs>
+            
+            {/* Основание */}
+            <ellipse cx="50" cy="115" rx="26" ry="6" fill={`url(#vip-k-gold-${piece.color})`}/>
+            <ellipse cx="50" cy="113" rx="22" ry="4" fill={`url(#vip-n-${piece.color})`}/>
+            
+            {/* Пьедестал */}
+            <rect x="32" y="88" width="36" height="22" fill={`url(#vip-n-${piece.color})`} stroke={shadowColor} strokeWidth="1" rx="2"/>
+            <ellipse cx="50" cy="88" rx="18" ry="5" fill={`url(#vip-k-gold-${piece.color})`}/>
+            
+            {/* Торс воина */}
+            <path d="M30 88 Q25 65 38 50 Q50 45 62 50 Q75 65 70 88 Z" fill={`url(#vip-n-${piece.color})`} stroke={shadowColor} strokeWidth="1.5"/>
+            
+            {/* Доспех */}
+            <path d="M38 60 L50 52 L62 60 L50 75 Z" fill={`url(#vip-k-gold-${piece.color})`} opacity="0.7"/>
+            
+            {/* Шея */}
+            <ellipse cx="50" cy="48" rx="9" ry="6" fill={`url(#vip-n-${piece.color})`}/>
+            
+            {/* Голова с головным убором */}
+            <ellipse cx="50" cy="32" rx="16" ry="18" fill={`url(#vip-n-${piece.color})`} stroke={shadowColor} strokeWidth="1"/>
+            
+            {/* Лицо */}
+            <ellipse cx="50" cy="35" rx="12" ry="13" fill={isWhite ? '#f0e0c8' : '#3a3530'}/>
+            
+            {/* Глаза */}
+            <ellipse cx="45" cy="32" rx="2" ry="1.5" fill="#000"/>
+            <ellipse cx="55" cy="32" rx="2" ry="1.5" fill="#000"/>
+            
+            {/* Губы */}
+            <ellipse cx="50" cy="42" rx="3" ry="1" fill={isWhite ? '#c09080' : '#4a4540'}/>
+            
+            {/* Головной убор с перьями */}
+            <path d="M34 32 Q30 15 50 10 Q70 15 66 32 Q50 38 34 32 Z" fill={`url(#vip-n-${piece.color})`} stroke={shadowColor} strokeWidth="1"/>
+            
+            {/* Высокие перья */}
+            <path d="M40 20 L35 0 L42 18" fill={`url(#vip-k-gold-${piece.color})`}/>
+            <path d="M60 20 L65 0 L58 18" fill={`url(#vip-k-gold-${piece.color})`}/>
+            
+            {/* Центральное украшение */}
+            <circle cx="50" cy="18" r="5" fill={`url(#vip-k-gold-${piece.color})`}/>
+            <circle cx="50" cy="18" r="2" fill="#ff0000"/>
+            
+            {/* Брови */}
+            <path d="M42 28 Q45 26 48 28" fill="none" stroke={shadowColor} strokeWidth="1"/>
+            <path d="M52 28 Q55 26 58 28" fill="none" stroke={shadowColor} strokeWidth="1"/>
+          </svg>
+        );
+
+      case 'p': // Пешка - Раб / Слуга
+        return (
+          <svg viewBox="0 0 100 100" style={{ width: s, height: s, filter: baseFilter }}>
+            <defs>
+              <linearGradient id={`vip-p-${piece.color}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={highlightColor}/>
+                <stop offset="50%" stopColor={baseFill}/>
+                <stop offset="100%" stopColor={shadowColor}/>
+              </linearGradient>
+            </defs>
+            
+            {/* Основание */}
+            <ellipse cx="50" cy="95" rx="22" ry="6" fill={`url(#vip-k-gold-${piece.color})`}/>
+            <ellipse cx="50" cy="93" rx="18" ry="4" fill={`url(#vip-p-${piece.color})`}/>
+            
+            {/* Простой пьедестал */}
+            <rect x="35" y="75" width="30" height="18" fill={`url(#vip-p-${piece.color})`} stroke={shadowColor} strokeWidth="1" rx="2"/>
+            <ellipse cx="50" cy="75" rx="15" ry="4" fill={`url(#vip-k-gold-${piece.color})`}/>
+            
+            {/* Тело */}
+            <path d="M32 75 Q28 55 38 42 Q50 38 62 42 Q72 55 68 75 Z" fill={`url(#vip-p-${piece.color})`} stroke={shadowColor} strokeWidth="1"/>
+            
+            {/* Простое украшение */}
+            <circle cx="50" cy="55" r="4" fill={`url(#vip-k-gold-${piece.color})`} opacity="0.6"/>
+            
+            {/* Шея */}
+            <ellipse cx="50" cy="40" rx="8" ry="5" fill={`url(#vip-p-${piece.color})`}/>
+            
+            {/* Голова */}
+            <ellipse cx="50" cy="28" rx="12" ry="14" fill={`url(#vip-p-${piece.color})`} stroke={shadowColor} strokeWidth="1"/>
+            
+            {/* Лицо */}
+            <ellipse cx="50" cy="30" rx="9" ry="10" fill={isWhite ? '#f0e0c8' : '#3a3530'}/>
+            
+            {/* Глаза */}
+            <ellipse cx="46" cy="28" rx="2" ry="1.5" fill="#000"/>
+            <ellipse cx="54" cy="28" rx="2" ry="1.5" fill="#000"/>
+            
+            {/* Губы */}
+            <ellipse cx="50" cy="36" rx="2.5" ry="1" fill={isWhite ? '#c09080' : '#4a4540'}/>
+            
+            {/* Простой головной убор */}
+            <path d="M38 28 Q40 18 50 16 Q60 18 62 28 Q50 32 38 28 Z" fill={`url(#vip-p-${piece.color})`} stroke={shadowColor} strokeWidth="1"/>
+            
+            {/* Блик на голове */}
+            <ellipse cx="45" cy="22" rx="4" ry="3" fill={isWhite ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.1)'}/>
+          </svg>
+        );
+    }
+  };
+
+  return (
+    <div style={{ width: s, height: s * 1.3, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+      {renderPiece()}
+    </div>
+  );
+}
+
 // ========== ГЛАВНЫЙ КОМПОНЕНТ ==========
 function ChessPieceComponent({ piece, size = 60, className = '', pieceSetId = 'fantasy' }: ChessPieceProps) {
   const pieceSize = size;
@@ -1570,6 +1980,8 @@ function ChessPieceComponent({ piece, size = 60, className = '', pieceSetId = 'f
         return <MinimalPiece piece={piece} size={pieceSize} />;
       case 'samurai':
         return <SamuraiPiece piece={piece} size={pieceSize} />;
+      case 'vip3d':
+        return <VIP3DPiece piece={piece} size={pieceSize} />;
       default:
         return <FantasyPiece piece={piece} size={pieceSize} />;
     }

@@ -109,13 +109,15 @@ export const PIECE_NAMES: Record<PieceType, string> = {
 
 // ========== НАБОРЫ ФИГУР ==========
 
-export type PieceSetId = 'fantasy' | 'geometric' | 'egyptian' | 'crystal' | 'lewis' | 'minimal' | 'samurai';
+export type PieceSetId = 'fantasy' | 'geometric' | 'egyptian' | 'crystal' | 'lewis' | 'minimal' | 'samurai' | 'vip3d';
 
 export interface PieceSet {
   id: PieceSetId;
   name: string;
   description: string;
   isPremium?: boolean;
+  isVIP?: boolean;
+  includesBoard?: BoardSkinId; // Для VIP наборов - связанная доска
 }
 
 export const PIECE_SETS: Record<PieceSetId, PieceSet> = {
@@ -156,11 +158,19 @@ export const PIECE_SETS: Record<PieceSetId, PieceSet> = {
     description: 'Японские воины в детальных доспехах с катанами',
     isPremium: true,
   },
+  vip3d: {
+    id: 'vip3d',
+    name: 'VIP 3D',
+    description: 'Роскошные 3D бюсты с фотореалистичным рендерингом',
+    isPremium: true,
+    isVIP: true,
+    includesBoard: 'vip3d',
+  },
 };
 
 // ========== СКИНЫ ДОСКИ ==========
 
-export type BoardSkinId = 'classic' | 'wood' | 'marble' | 'neon' | 'dark' | 'ocean' | 'glass' | 'leather' | 'emerald';
+export type BoardSkinId = 'classic' | 'wood' | 'marble' | 'neon' | 'dark' | 'ocean' | 'glass' | 'leather' | 'emerald' | 'vip3d';
 
 export interface BoardSkin {
   id: BoardSkinId;
@@ -334,6 +344,24 @@ export const BOARD_SKINS: Record<BoardSkinId, BoardSkin> = {
     border: '#1a5a3a',
     tableColor: '#1a3a2a',
     tableAccent: '#0f2518'
+  },
+  vip3d: {
+    id: 'vip3d',
+    name: 'VIP 3D',
+    lightSquare: '#f5e6c8',
+    darkSquare: '#8b6914',
+    selectedLight: '#ffe066',
+    selectedDark: '#d4a017',
+    legalMoveLight: '#f5e6c8',
+    legalMoveDark: '#8b6914',
+    lastMoveLight: '#e8d5a3',
+    lastMoveDark: '#a07820',
+    checkLight: '#ff4444',
+    checkDark: '#cc0000',
+    border: '#ffd700',
+    tableColor: '#1a1a1a',
+    tableAccent: '#0a0a0a',
+    isVIP: true,
   }
 };
 
