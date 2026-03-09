@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Copy, Check } from 'lucide-react';
 import {
   GameState,
   Position,
@@ -42,6 +43,9 @@ export default function ChessGame() {
   const [opponentDisconnected, setOpponentDisconnected] = useState(false);
   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
   const [isRoomCreator, setIsRoomCreator] = useState(false);
+  const [onlinePlayerId, setOnlinePlayerId] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
   // Promotion dialog
   const [promotionDialog, setPromotionDialog] = useState<{
@@ -274,57 +278,149 @@ export default function ChessGame() {
     setOpponentDisconnected(false);
     setShowGameEndDialog(false);
     setPromotionDialog(null);
+    setOnlinePlayerId(null);
     prevGameOverRef.current = false;
 
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
   }, []);
 
-  // Create room
-  const createRoom = useCallback((playerName: string, timeControl: number, skin: BoardSkinId) => {
+  // Create room via API
+  const createRoom = useCallback(async (playerName: string, timeControl: number) => {
     setWaitingForOpponent(true);
     setIsRoomCreator(true);
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    setRoomId(code);
-    setPlayerColor('w');
-    setBoardSkin(skin);
-    setOnlinePlayers([{
-      id: '1',
-      color: 'w',
-      name: playerName,
-      timeRemaining: timeControl,
-      isConnected: true
-    }]);
-    setGameSettings({
-      mode: 'online',
-      timeControl,
-      playerColor: 'w',
-      boardSkin: skin
-    });
-    setWhiteTime(timeControl);
-    setBlackTime(timeControl);
+    setIsConnecting(true);
+    
+    try {
+      const response = await fetch('/api/chess-room', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'createRoom',
+          playerName,
+          timeControl
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setRoomId(data.roomId);
+        setPlayerColor(data.playerColor);
+        setOnlinePlayerId(data.playerId);
+        setOnlinePlayers(data.room.players);
+        setBoardSkin('classic');
+        setGameSettings({
+          mode: 'online',
+          timeControl,
+          playerColor: data.playerColor
+        });
+        setWhiteTime(timeControl);
+        setBlackTime(timeControl);
+        
+        // Start polling for opponent
+        startPolling(data.roomId);
+      } else {
+        console.error('Failed to create room:', data.error);
+        setWaitingForOpponent(false);
+        setIsRoomCreator(false);
+      }
+    } catch (error) {
+      console.error('Create room error:', error);
+      setWaitingForOpponent(false);
+      setIsRoomCreator(false);
+    }
+    
+    setIsConnecting(false);
   }, []);
+  
+  // Start polling for room updates
+  const startPolling = useCallback((roomId: string) => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+    }
+    
+    pollingRef.current = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/chess-room?action=getState&roomId=${roomId}`);
+        const data = await response.json();
+        
+        if (data.success && data.room) {
+          setOnlinePlayers(data.room.players);
+          
+          if (data.room.isGameStarted && !isGameStarted) {
+            setWaitingForOpponent(false);
+            setIsGameStarted(true);
+            setGameState(data.room.gameState);
+          }
+          
+          if (data.room.gameState) {
+            setGameState(data.room.gameState);
+          }
+          
+          if (data.room.playerTimes) {
+            setWhiteTime(data.room.playerTimes.w);
+            setBlackTime(data.room.playerTimes.b);
+          }
+        }
+      } catch (error) {
+        console.error('Polling error:', error);
+      }
+    }, 500);
+  }, [isGameStarted]);
 
-  // Join room
-  const joinRoom = useCallback((roomId: string, playerName: string) => {
-    setWaitingForOpponent(false);
+  // Join room via API
+  const joinRoom = useCallback(async (roomId: string, playerName: string) => {
+    setIsConnecting(true);
     setIsRoomCreator(false);
-    setRoomId(roomId);
-    setPlayerColor('b');
-    setOnlinePlayers([
-      { id: '1', color: 'w', name: 'Игрок 1', timeRemaining: 600, isConnected: true },
-      { id: '2', color: 'b', name: playerName, timeRemaining: 600, isConnected: true }
-    ]);
-    setGameSettings({
-      mode: 'online',
-      timeControl: 600,
-      playerColor: 'b'
-    });
-    setIsGameStarted(true);
-    setGameState(createInitialGameState());
-  }, []);
+    
+    try {
+      const response = await fetch('/api/chess-room', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'joinRoom',
+          roomId,
+          playerName
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setRoomId(data.roomId);
+        setPlayerColor(data.playerColor);
+        setOnlinePlayerId(data.playerId);
+        setOnlinePlayers(data.room.players);
+        setGameSettings({
+          mode: 'online',
+          timeControl: data.room.players[0]?.timeRemaining || 600,
+          playerColor: data.playerColor
+        });
+        setIsGameStarted(true);
+        setGameState(data.room.gameState);
+        setWaitingForOpponent(false);
+        
+        // Start polling
+        startPolling(data.roomId);
+      } else {
+        console.error('Failed to join room:', data.error);
+        alert('Не удалось присоединиться: ' + (data.error || 'Комната не найдена'));
+      }
+    } catch (error) {
+      console.error('Join room error:', error);
+      alert('Ошибка соединения');
+    }
+    
+    setIsConnecting(false);
+  }, [startPolling]);
 
   // Get last move
   const lastMove = gameState.moveHistory.length > 0
@@ -365,6 +461,19 @@ export default function ChessGame() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Handle URL join parameter
+  const [joinRoomCode, setJoinRoomCode] = useState<string | null>(null);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const joinCode = params.get('join');
+      if (joinCode) {
+        setJoinRoomCode(joinCode.toUpperCase());
+      }
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
       <div className="container mx-auto px-4 py-6">
@@ -381,10 +490,68 @@ export default function ChessGame() {
         {!isGameStarted ? (
           <GameModeSelect
             onStartGame={startGame}
-            onCreateRoom={createRoom}
-            onJoinRoom={joinRoom}
+            onCreateOnlineRoom={createRoom}
+            onJoinOnlineRoom={joinRoom}
             isConnecting={isConnecting}
           />
+        ) : waitingForOpponent && isRoomCreator ? (
+          // Waiting room dialog for online game
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+            <Card className="bg-slate-800 border-slate-700 max-w-md w-full mx-4">
+              <CardHeader className="text-center">
+                <CardTitle className="text-2xl text-white flex items-center justify-center gap-2">
+                  🎮 Ожидание игрока
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="text-center">
+                  <p className="text-slate-400 mb-4">
+                    Отправьте ссылку другу:
+                  </p>
+                  <div className="bg-slate-900 p-4 rounded-lg">
+                    <div className="text-3xl font-mono font-bold tracking-widest text-yellow-400 mb-2">
+                      {roomId}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2 break-all">
+                      {typeof window !== 'undefined' ? `${window.location.origin}?join=${roomId}` : ''}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1 bg-slate-700 border-slate-600"
+                    onClick={() => {
+                      const link = `${window.location.origin}?join=${roomId}`;
+                      navigator.clipboard.writeText(link);
+                      setCopiedLink(true);
+                      setTimeout(() => setCopiedLink(false), 2000);
+                    }}
+                  >
+                    {copiedLink ? (
+                      <><Check className="w-4 h-4 mr-2" /> Скопировано!</>
+                    ) : (
+                      <><Copy className="w-4 h-4 mr-2" /> Копировать ссылку</>
+                    )}
+                  </Button>
+                </div>
+                
+                <div className="flex items-center justify-center gap-2 text-slate-400">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span className="animate-pulse">Ожидаем второго игрока...</span>
+                </div>
+                
+                <Button
+                  variant="ghost"
+                  className="w-full text-slate-500 hover:text-white"
+                  onClick={resetGame}
+                >
+                  Отмена
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 max-w-6xl mx-auto">
             {/* Main Game Area */}

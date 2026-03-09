@@ -22,20 +22,24 @@ import {
   ArrowRight,
   Clock,
   Palette,
-  Crown
+  Crown,
+  Copy,
+  Check,
+  Share2,
+  Loader2
 } from 'lucide-react';
 
 interface GameModeSelectProps {
   onStartGame: (settings: GameSettings & { boardSkin?: BoardSkinId; pieceSet?: PieceSetId }) => void;
-  onCreateRoom: (playerName: string, timeControl: number, boardSkin: BoardSkinId) => void;
-  onJoinRoom: (roomId: string, playerName: string) => void;
+  onCreateOnlineRoom: (playerName: string, timeControl: number) => void;
+  onJoinOnlineRoom: (roomId: string, playerName: string) => void;
   isConnecting?: boolean;
 }
 
 export function GameModeSelect({ 
   onStartGame, 
-  onCreateRoom, 
-  onJoinRoom,
+  onCreateOnlineRoom, 
+  onJoinOnlineRoom,
   isConnecting 
 }: GameModeSelectProps) {
   const [mode, setMode] = useState<GameMode>('local');
@@ -81,13 +85,13 @@ export function GameModeSelect({
 
   const handleCreateRoom = () => {
     if (playerName.trim()) {
-      onCreateRoom(playerName.trim(), timeControl, boardSkin);
+      onCreateOnlineRoom(playerName.trim(), timeControl);
     }
   };
 
   const handleJoinRoom = () => {
     if (playerName.trim() && roomId.trim()) {
-      onJoinRoom(roomId.trim().toUpperCase(), playerName.trim());
+      onJoinOnlineRoom(roomId.trim().toUpperCase(), playerName.trim());
     }
   };
 
@@ -318,6 +322,9 @@ export function GameModeSelect({
           {mode === 'online' && (
             <div className="space-y-4 p-4 bg-slate-700/50 rounded-lg">
               <h3 className="font-semibold text-lg text-white">Онлайн игра</h3>
+              <p className="text-sm text-slate-400">
+                Создайте комнату и поделитесь кодом с другом, или присоединитесь к существующей.
+              </p>
               
               <div className="space-y-2">
                 <Label className="text-slate-200">Ваше имя</Label>
@@ -328,69 +335,6 @@ export function GameModeSelect({
                   maxLength={20}
                   className="bg-slate-700 border-slate-600 placeholder:text-slate-500"
                 />
-              </div>
-
-              {/* Выбор скина для создателя комнаты */}
-              <div className="space-y-3">
-                <Label className="flex items-center gap-2 text-slate-200 font-semibold">
-                  <Palette className="w-5 h-5" />
-                  Оформление доски (для создателя)
-                </Label>
-                <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
-                  {Object.values(BOARD_SKINS).map((skin) => (
-                    <button
-                      key={skin.id}
-                      onClick={() => setBoardSkin(skin.id)}
-                      className={`relative rounded-lg overflow-hidden transition-all duration-200 ${
-                        boardSkin === skin.id 
-                          ? 'ring-2 ring-white scale-105' 
-                          : 'hover:scale-105 opacity-70 hover:opacity-100'
-                      }`}
-                    >
-                      <div className="w-full aspect-square flex">
-                        <div className="w-1/2 h-full" style={{ backgroundColor: skin.lightSquare }} />
-                        <div className="w-1/2 h-full" style={{ backgroundColor: skin.darkSquare }} />
-                      </div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                      <span className="absolute bottom-1 left-1 right-1 text-xs text-white font-medium truncate">
-                        {skin.name}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Выбор набора фигур */}
-              <div className="space-y-3">
-                <Label className="flex items-center gap-2 text-slate-200 font-semibold">
-                  <Crown className="w-5 h-5" />
-                  Набор фигур (для создателя)
-                </Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {Object.values(PIECE_SETS).map((set) => (
-                    <button
-                      key={set.id}
-                      onClick={() => setPieceSet(set.id)}
-                      className={`relative p-2 rounded-lg transition-all duration-200 text-left ${
-                        pieceSet === set.id 
-                          ? 'ring-2 ring-yellow-500 bg-slate-600' 
-                          : 'hover:bg-slate-600/70 bg-slate-700/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">♔</span>
-                        <div>
-                          <div className="text-sm font-semibold text-white flex items-center gap-1">
-                            {set.name}
-                            {set.isPremium && (
-                              <span className="text-yellow-400 text-xs">★</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
               </div>
 
               <div className="space-y-2">
@@ -419,24 +363,26 @@ export function GameModeSelect({
                 <Button 
                   onClick={handleCreateRoom} 
                   disabled={!playerName.trim() || isConnecting}
-                  className="h-16 bg-purple-600 hover:bg-purple-700"
+                  className="h-20 bg-purple-600 hover:bg-purple-700 flex-col"
                 >
-                  <div className="flex flex-col items-center gap-1">
-                    <Play className="w-5 h-5" />
-                    <span>Создать комнату</span>
-                  </div>
+                  {isConnecting ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Share2 className="w-6 h-6 mb-1" />
+                      <span className="font-semibold">Создать комнату</span>
+                    </>
+                  )}
                 </Button>
                 
                 <Button 
                   variant="outline"
                   onClick={() => setShowJoinForm(!showJoinForm)} 
                   disabled={!playerName.trim() || isConnecting}
-                  className="h-16 bg-slate-700 border-slate-600 hover:bg-slate-600"
+                  className="h-20 bg-slate-700 border-slate-600 hover:bg-slate-600 flex-col"
                 >
-                  <div className="flex flex-col items-center gap-1">
-                    <ArrowRight className="w-5 h-5" />
-                    <span>Войти в комнату</span>
-                  </div>
+                  <ArrowRight className="w-6 h-6 mb-1" />
+                  <span className="font-semibold">Войти по коду</span>
                 </Button>
               </div>
 
@@ -451,10 +397,14 @@ export function GameModeSelect({
                   />
                   <Button 
                     onClick={handleJoinRoom}
-                    disabled={roomId.length !== 6 || isConnecting}
-                    className="bg-purple-600 hover:bg-purple-700"
+                    disabled={roomId.length < 4 || isConnecting}
+                    className="bg-purple-600 hover:bg-purple-700 px-6"
                   >
-                    Войти
+                    {isConnecting ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      'Войти'
+                    )}
                   </Button>
                 </div>
               )}
